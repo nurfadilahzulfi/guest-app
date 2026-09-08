@@ -1,0 +1,46 @@
+import { auth } from "@/infrastructure/auth/auth-options";
+import { isAdministrator } from "@/domain/entities/user";
+import { inviteUser } from "@/application/use-cases/invite-user";
+import { prismaUserRepository } from "@/infrastructure/repositories/prisma-user-repository";
+import { cryptoTokenService } from "@/infrastructure/tokens/crypto-token-service";
+import { emailNotificationService } from "@/infrastructure/notifications/email-notification-service";
+
+/**
+ * POST /api/users/invite — Undang user baru (ADMINISTRATOR only).
+ * Tidak ada self-registration (AGENTS.md Bagian 9 Rule #5).
+ */
+export async function POST(request) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!isAdministrator(session.user.role)) {
+      return Response.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const input = await request.json();
+    const appUrl = process.env.APP_URL || "http://localhost:3000";
+
+    const user = await inviteUser({
+      input,
+      userRepository: prismaUserRepository,
+      tokenService: cryptoTokenService,
+      notificationService: emailNotificationService,
+      appUrl,
+    });
+
+    return Response.json(
+      {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Invite user error:", error);
+    return Response.json({ error: error.message }, { status: 400 });
+  }
+}

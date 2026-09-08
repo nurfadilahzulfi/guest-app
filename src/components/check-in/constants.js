@@ -12,16 +12,16 @@ import {
  * Token desain warna dan tipografi resmi PT. Tanimas Resources Internasional.
  */
 export const TOKENS = {
-  "--tm-forest": "#0E3B2E",
-  "--tm-emerald": "#17A34A",
-  "--tm-emerald-deep": "#0E7A3B",
-  "--tm-cream": "#F7F8F4",
-  "--tm-line": "#E3E7DD",
-  "--tm-muted": "#5B6355",
-  "--tm-emerald-10": "rgba(23,163,74,0.08)",
-  "--tm-emerald-15": "rgba(23,163,74,0.12)",
-  "--tm-shadow-card": "0 8px 24px -14px rgba(14,59,46,0.14)",
-  "--tm-shadow-btn": "0 4px 12px -4px rgba(14,59,46,0.22)",
+  "--tm-forest": "#09090B",
+  "--tm-emerald": "#18181B",
+  "--tm-emerald-deep": "#09090B",
+  "--tm-cream": "#F8F9FA",
+  "--tm-line": "#E2E8F0",
+  "--tm-muted": "#64748B",
+  "--tm-emerald-10": "rgba(9, 9, 11, 0.05)",
+  "--tm-emerald-15": "rgba(9, 9, 11, 0.08)",
+  "--tm-shadow-card": "0 10px 30px -10px rgba(0, 0, 0, 0.06)",
+  "--tm-shadow-btn": "0 4px 14px -3px rgba(0, 0, 0, 0.25)",
   "--font-display": "'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif",
 };
 

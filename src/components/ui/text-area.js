@@ -15,7 +15,8 @@ export function TextArea({ id, placeholder, value, onChange, rows = 3 }) {
       placeholder={placeholder}
       value={value}
       onChange={onChange}
-      className="w-full rounded-xl border border-[var(--tm-line)] bg-white px-4 py-2.5 text-sm text-[var(--tm-forest)] placeholder:text-[var(--tm-muted)]/70 focus:outline-none focus:border-[var(--tm-emerald)] focus:ring-2 focus:ring-[var(--tm-emerald-15)] transition-colors duration-150 resize-none"
+      className="w-full rounded-xl border border-[var(--tm-line)] bg-white px-4 py-2.5 text-sm text-[var(--tm-forest)] placeholder:text-[var(--tm-muted)]/70 focus:outline-none focus:border-[var(--tm-forest)] focus:ring-1 focus:ring-[var(--tm-forest)] transition-colors duration-150 resize-none"
+
     />
   );
 }

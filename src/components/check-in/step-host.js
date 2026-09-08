@@ -37,7 +37,7 @@ export function StepHost({ data, onChange, errors }) {
   return (
     <div className="space-y-5">
       <StepHeading
-        icon={IconBuilding}
+        step="02"
         title="Pilih Host Tujuan"
         subtitle="Pilih satu orang yang akan Anda temui hari ini."
       />
@@ -52,7 +52,8 @@ export function StepHost({ data, onChange, errors }) {
           placeholder="Cari nama, posisi, atau departemen..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-xl border border-[var(--tm-line)] bg-white pl-10 pr-4 py-2.5 text-sm text-[var(--tm-forest)] placeholder:text-[var(--tm-muted)]/70 focus:outline-none focus:border-[var(--tm-emerald)] focus:ring-2 focus:ring-[var(--tm-emerald-15)] transition-colors duration-150"
+          className="w-full rounded-xl border border-[var(--tm-line)] bg-white pl-10 pr-4 py-2.5 text-sm text-[var(--tm-forest)] placeholder:text-[var(--tm-muted)]/70 focus:outline-none focus:border-[var(--tm-forest)] focus:ring-1 focus:ring-[var(--tm-forest)] transition-colors duration-150"
+
         />
       </div>
 

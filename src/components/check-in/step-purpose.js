@@ -16,7 +16,7 @@ export function StepPurpose({ data, onChange, errors }) {
   return (
     <div className="space-y-5">
       <StepHeading
-        icon={IconTarget}
+        step="03"
         title="Tujuan Kunjungan"
         subtitle="Pilih satu kategori yang paling sesuai dengan kedatangan Anda."
       />

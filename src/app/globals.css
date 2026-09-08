@@ -137,17 +137,22 @@ a,
 /* ─── Focus ring improvements ────────────────────────────────────────────── */
 
 *:focus-visible {
-  outline: 2px solid #fb923c;
+  outline: none;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #09090b;
   outline-offset: 2px;
-  border-radius: 8px;
 }
 
 /* ─── Selection highlight ────────────────────────────────────────────────── */
 
 ::selection {
-  background-color: #fed7aa;
-  color: #9a3412;
+  background-color: #e2e8f0;
+  color: #09090b;
 }
+
 
 /* ─── Guest App Typography & Reduced Motion ──────────────────────────────── */
 

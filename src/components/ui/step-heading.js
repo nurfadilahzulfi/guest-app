@@ -1,25 +1,28 @@
 /**
- * Motif judul tahapan formulir dengan badge ikon solid hijau emerald khas Tanimas.
+ * Motif judul tahapan formulir — desain tipografi minimalis monokrom.
+ * Badge ikon dihilangkan; visual dibedakan dengan aksen garis dan hierarki teks.
  * @param {Object} props
- * @param {React.ComponentType<{ className?: string }>} props.icon - Komponen SVG Icon pada badge
  * @param {string} props.title - Judul utama tahapan
  * @param {string} [props.subtitle] - Deskripsi singkat petunjuk tahapan
+ * @param {string} [props.step] - Nomor urut tahapan (opsional, misal "01")
  */
-export function StepHeading({ icon: Icon, title, subtitle }) {
+export function StepHeading({ title, subtitle, step }) {
   return (
-    <div className="flex items-start gap-3">
-      <div
-        className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white"
-        style={{ background: "var(--tm-emerald-deep)" }}
+    <div className="pb-4 border-b border-zinc-200">
+      {step && (
+        <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-zinc-400 mb-1">
+          Langkah {step}
+        </p>
+      )}
+      <h2
+        className="text-xl sm:text-2xl font-extrabold tracking-tight text-zinc-900 leading-tight"
+        style={{ fontFamily: "var(--font-display)" }}
       >
-        <Icon className="w-5 h-5" />
-      </div>
-      <div>
-        <h2 className="text-lg sm:text-xl font-extrabold tracking-tight text-[var(--tm-forest)]" style={{ fontFamily: "var(--font-display)" }}>
-          {title}
-        </h2>
-        {subtitle && <p className="text-sm text-[var(--tm-muted)] mt-0.5">{subtitle}</p>}
-      </div>
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="text-sm text-zinc-500 mt-1 leading-relaxed">{subtitle}</p>
+      )}
     </div>
   );
 }

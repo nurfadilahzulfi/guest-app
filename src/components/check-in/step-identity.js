@@ -15,7 +15,7 @@ export function StepIdentity({ data, onChange, errors }) {
   return (
     <div className="space-y-5">
       <StepHeading
-        icon={IconUser}
+        step="01"
         title="Identitas Tamu"
         subtitle="Isi data diri Anda untuk keperluan registrasi kunjungan."
       />

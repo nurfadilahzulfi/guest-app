@@ -42,7 +42,7 @@ export function StepConfirm({ data, hosts }) {
   return (
     <div className="space-y-5">
       <StepHeading
-        icon={IconClipboard}
+        step="04"
         title="Konfirmasi Data"
         subtitle="Periksa kembali data Anda sebelum mengirim."
       />

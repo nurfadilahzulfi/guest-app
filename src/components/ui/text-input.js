@@ -26,8 +26,8 @@ export function TextInput({ id, placeholder, value, onChange, type = "text", ico
         disabled={disabled}
         className={`
           w-full rounded-xl border border-[var(--tm-line)] bg-white px-4 py-2.5 text-sm text-[var(--tm-forest)]
-          placeholder:text-[var(--tm-muted)]/70 focus:outline-none focus:border-[var(--tm-emerald)]
-          focus:ring-2 focus:ring-[var(--tm-emerald-15)] disabled:bg-slate-50 disabled:text-slate-400
+          placeholder:text-[var(--tm-muted)]/70 focus:outline-none focus:border-[var(--tm-forest)]
+          focus:ring-1 focus:ring-[var(--tm-forest)] disabled:bg-slate-50 disabled:text-slate-400
           transition-colors duration-150
           ${Icon ? "pl-10" : ""}
         `}

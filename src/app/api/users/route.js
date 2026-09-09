@@ -2,10 +2,6 @@ import { auth } from "@/infrastructure/auth/auth-options";
 import { isAdministrator } from "@/domain/entities/user";
 import { prismaUserRepository } from "@/infrastructure/repositories/prisma-user-repository";
 
-/**
- * GET /api/users — List semua user (ADMINISTRATOR only).
- * Role WAJIB divalidasi di server (AGENTS.md Bagian 9 Rule #6).
- */
 export async function GET(request) {
   try {
     const session = await auth();
@@ -29,10 +25,6 @@ export async function GET(request) {
   }
 }
 
-/**
- * PATCH /api/users — Update status user (nonaktifkan/aktifkan) (ADMINISTRATOR only).
- * Menonaktifkan user selalu soft delete (isActive = false) (AGENTS.md Bagian 9 Rule #8).
- */
 export async function PATCH(request) {
   try {
     const session = await auth();
@@ -50,7 +42,6 @@ export async function PATCH(request) {
       return Response.json({ error: "userId wajib diisi" }, { status: 400 });
     }
 
-    // Tidak boleh menonaktifkan diri sendiri
     if (userId === session.user.id && isActive === false) {
       return Response.json({ error: "Tidak dapat menonaktifkan akun sendiri" }, { status: 400 });
     }
@@ -65,6 +56,33 @@ export async function PATCH(request) {
     });
   } catch (error) {
     console.error("Update user error:", error);
+    return Response.json({ error: error.message }, { status: 400 });
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!isAdministrator(session.user.role)) {
+      return Response.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { userId } = await request.json();
+    if (!userId) {
+      return Response.json({ error: "userId wajib diisi" }, { status: 400 });
+    }
+
+    if (userId === session.user.id) {
+      return Response.json({ error: "Tidak dapat menghapus akun sendiri" }, { status: 400 });
+    }
+
+    await prismaUserRepository.delete(userId);
+    return Response.json({ success: true, message: "Pengguna berhasil dihapus permanen" });
+  } catch (error) {
+    console.error("Delete user error:", error);
     return Response.json({ error: error.message }, { status: 400 });
   }
 }

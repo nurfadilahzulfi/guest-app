@@ -3,9 +3,10 @@ import { GENDER_OPTIONS } from "./constants";
 import { Field } from "@/components/ui/field";
 import { TextInput } from "@/components/ui/text-input";
 import { StepHeading } from "@/components/ui/step-heading";
+import { PhotoCapture } from "./photo-capture";
 
 /**
- * Tahap 1: Pengisian identitas diri tamu (Nama Lengkap, Nomor HP, Email, Jenis Kelamin, Asal Instansi).
+ * Tahap 1: Pengisian identitas diri tamu (Foto Wajah, Nama Lengkap, Nomor HP, Email, Jenis Kelamin, Asal Instansi).
  * @param {Object} props
  * @param {Object} props.data - State data formulir
  * @param {function(string, any): void} props.onChange - Handler perubahan nilai field
@@ -17,8 +18,21 @@ export function StepIdentity({ data, onChange, errors }) {
       <StepHeading
         step="01"
         title="Identitas Tamu"
-        subtitle="Isi data diri Anda untuk keperluan registrasi kunjungan."
+        subtitle="Isi data diri dan ambil foto wajah Anda untuk keperluan registrasi kunjungan."
       />
+
+      <Field
+        label="Foto Wajah Tamu"
+        id="guestPhoto"
+        required
+        hint="Wajib diambil langsung melalui kamera depan perangkat untuk verifikasi identitas resmi."
+      >
+        <PhotoCapture
+          value={data.guestPhoto}
+          onChange={(val) => onChange("guestPhoto", val)}
+          error={errors.guestPhoto}
+        />
+      </Field>
 
       <Field label="Nama Lengkap" id="guestName" required hint="Sesuai identitas resmi (KTP/SIM).">
         <TextInput

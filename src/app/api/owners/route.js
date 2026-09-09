@@ -3,10 +3,6 @@ import { isAdministrator } from "@/domain/entities/user";
 import { prismaOwnerRepository } from "@/infrastructure/repositories/prisma-owner-repository";
 import { createOwner, deactivateOwner } from "@/application/use-cases/manage-owner-list";
 
-/**
- * POST /api/owners — Tambah owner baru (ADMINISTRATOR only).
- * Role WAJIB divalidasi di server (AGENTS.md Bagian 9 Rule #6).
- */
 export async function POST(request) {
   try {
     const session = await auth();
@@ -30,10 +26,7 @@ export async function POST(request) {
   }
 }
 
-/**
- * PATCH /api/owners — Nonaktifkan owner (ADMINISTRATOR only).
- * Soft delete — perubahan tidak berlaku surut (AGENTS.md Bagian 9 Rule #9).
- */
+
 export async function PATCH(request) {
   try {
     const session = await auth();
@@ -61,9 +54,6 @@ export async function PATCH(request) {
   }
 }
 
-/**
- * GET /api/owners — List semua owner (ADMINISTRATOR only).
- */
 export async function GET() {
   try {
     const session = await auth();

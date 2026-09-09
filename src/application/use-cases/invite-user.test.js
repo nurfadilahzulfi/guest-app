@@ -47,21 +47,29 @@ describe("Use Case: inviteUser", () => {
     });
 
     expect(userRepository.findByEmail).toHaveBeenCalledWith("staff@company.com");
-    expect(userRepository.create).toHaveBeenCalledWith({
-      name: "Staff Baru",
-      email: "staff@company.com",
-      role: "HOST",
-      department: "Finance",
-      position: "Accountant",
-      isDepartmentHead: false,
-    });
+    expect(userRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Staff Baru",
+        email: "staff@company.com",
+        role: "HOST",
+        department: "Finance",
+        position: "Accountant",
+        isDepartmentHead: false,
+      })
+    );
     expect(tokenService.createInviteToken).toHaveBeenCalledWith("user-1", 72);
     expect(notificationService.sendInviteEmail).toHaveBeenCalledWith({
       user: mockCreatedUser,
       inviteToken: mockInviteToken,
       inviteUrl: "http://localhost:3000/invite/invite-uuid-1",
     });
-    expect(result).toEqual(mockCreatedUser);
+    expect(result).toEqual(
+      expect.objectContaining({
+        ...mockCreatedUser,
+        inviteToken: "invite-uuid-1",
+        inviteUrl: "http://localhost:3000/invite/invite-uuid-1",
+      })
+    );
   });
 
   it("harus menolak jika email sudah terdaftar dalam sistem", async () => {

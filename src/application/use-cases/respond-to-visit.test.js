@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { respondToVisit, getVisitByActionToken } from "./respond-to-visit";
+import { respondToVisit, getVisitByActionToken, respondToVisitDirectly } from "./respond-to-visit";
 
 describe("Use Case: respondToVisit", () => {
   const mockToken = {
@@ -187,5 +187,79 @@ describe("Use Case: getVisitByActionToken (GET idempotency)", () => {
     });
 
     expect(result).toBeNull();
+  });
+});
+
+describe("Use Case: respondToVisitDirectly (Dashboard Host Action)", () => {
+  const mockPendingVisit = {
+    id: "visit-123",
+    hostId: "host-me",
+    status: "PENDING",
+    guestName: "Budi Tamu",
+  };
+
+  it("harus menyetujui kunjungan langsung jika host yang login adalah host tujuan", async () => {
+    const visitRepository = {
+      findById: vi.fn().mockResolvedValue(mockPendingVisit),
+      updateStatus: vi.fn().mockResolvedValue({
+        ...mockPendingVisit,
+        status: "APPROVED",
+        hostReply: "Silakan ke lantai 3",
+      }),
+    };
+
+    const result = await respondToVisitDirectly({
+      visitId: "visit-123",
+      hostUserId: "host-me",
+      action: "APPROVED",
+      hostReply: "Silakan ke lantai 3",
+      visitRepository,
+    });
+
+    expect(result.status).toBe("APPROVED");
+    expect(result.hostReply).toBe("Silakan ke lantai 3");
+    expect(visitRepository.updateStatus).toHaveBeenCalledWith(
+      "visit-123",
+      expect.objectContaining({
+        status: "APPROVED",
+        hostReply: "Silakan ke lantai 3",
+      }),
+      null
+    );
+  });
+
+  it("harus menolak aksi jika user yang login BUKAN host tujuan dari kunjungan tersebut", async () => {
+    const visitRepository = {
+      findById: vi.fn().mockResolvedValue(mockPendingVisit),
+      updateStatus: vi.fn(),
+    };
+
+    await expect(
+      respondToVisitDirectly({
+        visitId: "visit-123",
+        hostUserId: "host-other",
+        action: "APPROVED",
+        visitRepository,
+      })
+    ).rejects.toThrow("Anda tidak memiliki hak untuk merespon kunjungan staf lain");
+  });
+
+  it("harus menolak jika status kunjungan bukan PENDING (misal sudah APPROVED)", async () => {
+    const visitRepository = {
+      findById: vi.fn().mockResolvedValue({
+        ...mockPendingVisit,
+        status: "APPROVED",
+      }),
+      updateStatus: vi.fn(),
+    };
+
+    await expect(
+      respondToVisitDirectly({
+        visitId: "visit-123",
+        hostUserId: "host-me",
+        action: "REJECTED",
+        visitRepository,
+      })
+    ).rejects.toThrow("Tidak bisa mengubah status kunjungan dari APPROVED ke REJECTED");
   });
 });

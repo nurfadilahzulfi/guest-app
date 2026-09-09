@@ -5,10 +5,6 @@ import { prismaUserRepository } from "@/infrastructure/repositories/prisma-user-
 import { cryptoTokenService } from "@/infrastructure/tokens/crypto-token-service";
 import { emailNotificationService } from "@/infrastructure/notifications/email-notification-service";
 
-/**
- * POST /api/users/invite — Undang user baru (ADMINISTRATOR only).
- * Tidak ada self-registration (AGENTS.md Bagian 9 Rule #5).
- */
 export async function POST(request) {
   try {
     const session = await auth();
@@ -36,6 +32,10 @@ export async function POST(request) {
         name: user.name,
         email: user.email,
         role: user.role,
+        rawPassword: user.rawPassword,
+        loginUrl: user.loginUrl,
+        inviteToken: user.inviteToken,
+        inviteUrl: user.inviteUrl,
       },
       { status: 201 }
     );

@@ -1,4 +1,5 @@
 import { checkInGuest } from "@/application/use-cases/check-in-guest";
+import { respondToVisitDirectly } from "@/application/use-cases/respond-to-visit";
 import { prismaVisitRepository } from "@/infrastructure/repositories/prisma-visit-repository";
 import { prismaOwnerRepository } from "@/infrastructure/repositories/prisma-owner-repository";
 import { prismaUserRepository } from "@/infrastructure/repositories/prisma-user-repository";
@@ -7,11 +8,9 @@ import { cryptoTokenService } from "@/infrastructure/tokens/crypto-token-service
 import { localStorageService } from "@/infrastructure/storage/local-storage-service";
 import { auth } from "@/infrastructure/auth/auth-options";
 import { canViewAllVisits } from "@/domain/entities/user";
+import { prisma } from "@/infrastructure/prisma/client";
 
-/**
- * POST /api/visits — Check-in tamu (public, tidak perlu auth).
- * Route handler tipis — semua logic di use case.
- */
+
 export async function POST(request) {
   try {
     const input = await request.json();
@@ -39,10 +38,6 @@ export async function POST(request) {
   }
 }
 
-/**
- * GET /api/visits — List seluruh riwayat kunjungan (ADMIN_HRD + ADMINISTRATOR only).
- * Role WAJIB divalidasi di server (AGENTS.md Bagian 9 Rule #6).
- */
 export async function GET(request) {
   try {
     const session = await auth();
@@ -62,13 +57,11 @@ export async function GET(request) {
       dateTo: searchParams.get("dateTo") || undefined,
     };
 
-    // Host hanya bisa melihat kunjungan miliknya sendiri (AGENTS.md Bagian 4 & 12)
     if (session.user.role === "HOST") {
       const result = await prismaVisitRepository.findByHostId(session.user.id, filters);
       return Response.json(result);
     }
 
-    // ADMIN_HRD & ADMINISTRATOR bisa melihat seluruh kunjungan
     if (canViewAllVisits(session.user.role)) {
       const result = await prismaVisitRepository.findAll(filters);
       return Response.json(result);
@@ -81,5 +74,68 @@ export async function GET(request) {
       { error: "Internal server error" },
       { status: 500 }
     );
+  }
+}
+
+export async function PATCH(request) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Hanya Host yang boleh approve/reject kunjungan (AGENTS.md Bagian 4)
+    if (session.user.role !== "HOST") {
+      return Response.json(
+        { error: "Hanya karyawan (Host) yang memiliki izin untuk menyetujui atau menolak kunjungan" },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
+    const { visitId, action, hostReply } = body;
+
+    if (!visitId) {
+      return Response.json({ error: "visitId wajib diisi" }, { status: 400 });
+    }
+
+    if (!action || !["APPROVED", "REJECTED"].includes(action)) {
+      return Response.json(
+        { error: "Action harus APPROVED atau REJECTED" },
+        { status: 400 }
+      );
+    }
+
+    const appUrl = process.env.APP_URL || "http://localhost:3000";
+    const updatedVisit = await respondToVisitDirectly({
+      visitId,
+      hostUserId: session.user.id,
+      action,
+      hostReply,
+      visitRepository: prismaVisitRepository,
+      transaction: (fn) => prisma.$transaction(fn),
+      notificationService: emailNotificationService,
+      appUrl,
+    });
+
+    // Tandai token action yang belum terpakai sebagai sudah digunakan
+    try {
+      await prisma.hostActionToken.updateMany({
+        where: { visitId, usedAt: null },
+        data: { usedAt: new Date() },
+      });
+    } catch {
+      // Abaikan jika tidak ada token
+    }
+
+    return Response.json({
+      id: updatedVisit.id,
+      status: updatedVisit.status,
+      hostReply: updatedVisit.hostReply,
+      respondedAt: updatedVisit.respondedAt,
+    });
+  } catch (error) {
+    console.error("Direct respond to visit error:", error);
+    return Response.json({ error: error.message }, { status: 400 });
   }
 }

@@ -1,9 +1,5 @@
 import { prismaVisitRepository } from "@/infrastructure/repositories/prisma-visit-repository";
 
-/**
- * GET /api/visits/status/[token] — Polling status visit by visitToken (public).
- * Tamu menggunakan ini untuk mengecek status kunjungannya.
- */
 export async function GET(request, { params }) {
   try {
     const { token } = await params;
@@ -16,7 +12,6 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Hanya kembalikan data yang perlu diketahui tamu
     return Response.json({
       guestName: visit.guestName,
       guestPhotoUrl: visit.guestPhotoUrl,
@@ -29,6 +24,7 @@ export async function GET(request, { params }) {
       hostName: visit.host.name,
       hostDepartment: visit.host.department,
       hostReply: visit.hostReply,
+      guestEmail: visit.guestEmail,
       createdAt: visit.createdAt,
       respondedAt: visit.respondedAt,
     });

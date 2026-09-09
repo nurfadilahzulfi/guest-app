@@ -18,6 +18,10 @@ export function validateStep(step, data) {
   const errors = {};
 
   if (step === 1) {
+    if (!data.guestPhoto || typeof data.guestPhoto !== "string" || !data.guestPhoto.trim()) {
+      errors.guestPhoto = "Foto wajah wajib diambil melalui kamera sebelum melanjutkan.";
+    }
+
     if (!data.guestName || !data.guestName.trim()) {
       errors.guestName = "Nama lengkap wajib diisi.";
     }
@@ -46,7 +50,7 @@ export function validateStep(step, data) {
 
   if (step === 2) {
     if (!data.hostId) {
-      errors.hostId = "Pilih host yang akan Anda temui.";
+      errors.hostId = "Pilih pihak yang akan Anda temui.";
     }
   }
 

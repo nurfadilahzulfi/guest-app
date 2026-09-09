@@ -66,7 +66,7 @@ export function StepPurpose({ data, onChange, errors }) {
       )}
 
       {/* Perkiraan Durasi Pertemuan */}
-      <Field label="Perkiraan Durasi Pertemuan" id="duration" required hint="Pilih estimasi alokasi waktu yang Anda butuhkan bersama host.">
+      <Field label="Perkiraan Durasi Pertemuan" id="duration" required hint="Pilih estimasi alokasi waktu yang Anda butuhkan bersama pihak yang dituju.">
         <div className="flex flex-wrap gap-2">
           {DURATION_OPTIONS.map((dur) => {
             const isSelected = data.duration === dur;

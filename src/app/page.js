@@ -32,6 +32,7 @@ export default function CheckInPage() {
   const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
+    guestPhoto: "",
     guestName: "",
     guestPhone: "",
     guestEmail: "",
@@ -48,7 +49,7 @@ export default function CheckInPage() {
     fetch("/api/hosts")
       .then((r) => r.json())
       .then((list) => setHosts(Array.isArray(list) ? list : []))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handleChange = useCallback((field, value) => {
@@ -95,6 +96,7 @@ export default function CheckInPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          guestPhoto: formData.guestPhoto || undefined,
           guestName: formData.guestName.trim(),
           guestPhone: formData.guestPhone.trim(),
           guestEmail: formData.guestEmail.trim() || undefined,
@@ -118,6 +120,7 @@ export default function CheckInPage() {
 
   const handleReset = () => {
     setFormData({
+      guestPhoto: "",
       guestName: "",
       guestPhone: "",
       guestEmail: "",

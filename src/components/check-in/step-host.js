@@ -38,8 +38,8 @@ export function StepHost({ data, onChange, errors }) {
     <div className="space-y-5">
       <StepHeading
         step="02"
-        title="Pilih Host Tujuan"
-        subtitle="Pilih satu orang yang akan Anda temui hari ini."
+        title="Pilih Pihak yang Dituju"
+        subtitle="Pilih orang atau pihak yang akan Anda temui hari ini."
       />
 
       <div className="relative">
@@ -53,7 +53,6 @@ export function StepHost({ data, onChange, errors }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full rounded-xl border border-[var(--tm-line)] bg-white pl-10 pr-4 py-2.5 text-sm text-[var(--tm-forest)] placeholder:text-[var(--tm-muted)]/70 focus:outline-none focus:border-[var(--tm-forest)] focus:ring-1 focus:ring-[var(--tm-forest)] transition-colors duration-150"
-
         />
       </div>
 
@@ -63,11 +62,11 @@ export function StepHost({ data, onChange, errors }) {
         {loading ? (
           <div className="flex items-center justify-center py-10 gap-2 text-[var(--tm-muted)]">
             <IconSpinner className="w-5 h-5" />
-            <span className="text-sm">Memuat daftar host...</span>
+            <span className="text-sm">Memuat daftar pihak yang dituju...</span>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-10 text-sm text-[var(--tm-muted)]">
-            {search ? `Tidak ada hasil untuk "${search}"` : "Belum ada host terdaftar."}
+            {search ? `Tidak ada hasil untuk "${search}"` : "Belum ada data pihak yang dituju."}
           </div>
         ) : (
           filtered.map((host) => {

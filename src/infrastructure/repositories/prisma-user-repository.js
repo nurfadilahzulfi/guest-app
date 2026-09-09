@@ -54,7 +54,7 @@ export const prismaUserRepository = {
     if (filters.role) where.role = filters.role;
     if (filters.isActive !== undefined) where.isActive = filters.isActive;
 
-    return prisma.user.findMany({
+    const users = await prisma.user.findMany({
       where,
       select: {
         id: true,
@@ -66,10 +66,30 @@ export const prismaUserRepository = {
         isDepartmentHead: true,
         isActive: true,
         createdAt: true,
-        // passwordHash TIDAK pernah di-return
+        passwordHash: true,
+        inviteTokens: {
+          where: { usedAt: null, expiresAt: { gt: new Date() } },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { token: true },
+        },
       },
       orderBy: { name: "asc" },
     });
+
+    return users.map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      department: u.department,
+      position: u.position,
+      isDepartmentHead: u.isDepartmentHead,
+      isActive: u.isActive,
+      createdAt: u.createdAt,
+      hasPassword: !!u.passwordHash,
+      activeInviteToken: u.inviteTokens?.[0]?.token || null,
+    }));
   },
 
   /**
@@ -128,5 +148,34 @@ export const prismaUserRepository = {
       where: { role: "ADMINISTRATOR", isActive: true },
       select: { id: true, name: true, email: true },
     });
+  },
+
+  /**
+   * Menghapus user secara permanen dari database jika tidak memiliki riwayat kunjungan.
+   * AGENTS.md Bagian 9 Rule #8: Jangan pernah hard delete data yang sudah berelasi dengan Visit.
+   * @param {string} userId
+   * @returns {Promise<boolean>}
+   */
+  async delete(userId) {
+    const visitCount = await prisma.visit.count({
+      where: { hostId: userId },
+    });
+
+    if (visitCount > 0) {
+      throw new Error(
+        "Karyawan/Pengguna ini sudah memiliki riwayat kunjungan tamu dan tidak dapat dihapus permanen demi menjaga integritas arsip buku tamu. Silakan gunakan opsi nonaktifkan akun."
+      );
+    }
+
+    // Bersihkan relasi pendukung terlebih dahulu (token, session, account)
+    await prisma.inviteToken.deleteMany({ where: { userId } });
+    await prisma.session.deleteMany({ where: { userId } });
+    await prisma.account.deleteMany({ where: { userId } });
+
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return true;
   },
 };

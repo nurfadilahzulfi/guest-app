@@ -1,14 +1,36 @@
 import { validateUserInput } from "@/domain/entities/user";
+import bcrypt from "bcryptjs";
 
 /**
- * Membuat host baru dalam direktori.
+ * Generate password acak yang ramah dibaca dan aman.
+ * Format: Tanimas@<4 angka> (contoh: Tanimas@8492)
+ * @returns {string}
+ */
+export function generateDefaultPassword() {
+  const digits = Math.floor(1000 + Math.random() * 9000);
+  return `Tanimas@${digits}`;
+}
+
+/**
+ * Membuat host baru dalam direktori beserta akun login dan kirim kredensial ke email.
  * Hanya ADMINISTRATOR yang boleh mengelola direktori host (AGENTS.md Bagian 4).
  * @param {Object} params
- * @param {{name: string, email: string, department: string, position: string, photoUrl?: string, isDepartmentHead?: boolean}} params.input
+ * @param {{name: string, email: string, department: string, position: string, photoUrl?: string, isDepartmentHead?: boolean, password?: string}} params.input
  * @param {import('@/domain/repositories/user-repository').UserRepository} params.userRepository
- * @returns {Promise<Object>} host yang baru dibuat
+ * @param {import('@/application/services/token-service').TokenService} [params.tokenService]
+ * @param {import('@/application/services/notification-service').NotificationService} [params.notificationService]
+ * @param {function} [params.hashPassword]
+ * @param {string} [params.appUrl]
+ * @returns {Promise<Object>} host yang baru dibuat beserta kredensial login
  */
-export async function createHost({ input, userRepository }) {
+export async function createHost({
+  input,
+  userRepository,
+  tokenService,
+  notificationService,
+  hashPassword = (p) => bcrypt.hash(p, 12),
+  appUrl = "http://localhost:3000",
+}) {
   const fullInput = { ...input, role: "HOST" };
   const validation = validateUserInput(fullInput);
   if (!validation.valid) {
@@ -20,15 +42,65 @@ export async function createHost({ input, userRepository }) {
     throw new Error("Email sudah terdaftar dalam sistem");
   }
 
-  return userRepository.create({
+  // Tentukan password: dari input admin atau generate default aman
+  const plainPassword = input.password?.trim() || generateDefaultPassword();
+  const passwordHash = await hashPassword(plainPassword, 12);
+
+  const user = await userRepository.create({
     name: input.name.trim(),
     email: input.email.trim().toLowerCase(),
+    passwordHash,
     role: "HOST",
     department: input.department.trim(),
     position: input.position.trim(),
     photoUrl: input.photoUrl || null,
     isDepartmentHead: input.isDepartmentHead || false,
+    isActive: true,
   });
+
+  const loginUrl = `${appUrl}/login`;
+
+  // Kirim email kredensial akun dan link login ke host baru
+  if (notificationService?.sendAccountCredentialsEmail) {
+    try {
+      await notificationService.sendAccountCredentialsEmail({
+        user,
+        password: plainPassword,
+        loginUrl,
+      });
+    } catch (err) {
+      console.warn("Gagal mengirim email kredensial ke host:", err.message);
+    }
+  }
+
+  let inviteTokenStr = null;
+  let inviteUrl = null;
+
+  if (tokenService) {
+    try {
+      const inviteToken = await tokenService.createInviteToken(user.id, 72);
+      inviteTokenStr = inviteToken.token;
+      inviteUrl = `${appUrl}/invite/${inviteToken.token}`;
+
+      if (notificationService?.sendInviteEmail && !notificationService?.sendAccountCredentialsEmail) {
+        await notificationService.sendInviteEmail({
+          user,
+          inviteToken,
+          inviteUrl,
+        });
+      }
+    } catch (err) {
+      console.warn("Gagal membuat invite token sekunder:", err.message);
+    }
+  }
+
+  return {
+    ...user,
+    rawPassword: plainPassword,
+    loginUrl,
+    inviteToken: inviteTokenStr,
+    inviteUrl,
+  };
 }
 
 /**
@@ -61,7 +133,7 @@ export async function updateHost({ hostId, input, userRepository }) {
  * @param {Object} params
  * @param {string} params.hostId
  * @param {import('@/domain/repositories/user-repository').UserRepository} params.userRepository
- * @returns {Promise<Object>} host yang sudah dinonaktifkan
+ * @returns {Promise<Object>} host yang dinonaktifkan
  */
 export async function deactivateHost({ hostId, userRepository }) {
   const host = await userRepository.findById(hostId);

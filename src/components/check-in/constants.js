@@ -30,7 +30,7 @@ export const TOKENS = {
  */
 export const STEPS = [
   { id: 1, label: "Identitas", icon: IconUser },
-  { id: 2, label: "Pilih Host", icon: IconBuilding },
+  { id: 2, label: "Pihak Dituju", icon: IconBuilding },
   { id: 3, label: "Tujuan", icon: IconTarget },
   { id: 4, label: "Konfirmasi", icon: IconClipboard },
 ];

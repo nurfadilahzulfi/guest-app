@@ -24,7 +24,7 @@ export function StepConfirm({ data, hosts }) {
     { label: "Nomor HP", value: data.guestPhone, icon: IconPhone },
     { label: "Email", value: data.guestEmail || "—", icon: IconMail },
     {
-      label: "Host Tujuan",
+      label: "Pihak yang Dituju",
       value: host
         ? `${host.name}${host.position ? ` — ${host.position}` : ""}${host.department ? ` (${host.department})` : ""}`
         : "—",
@@ -46,6 +46,26 @@ export function StepConfirm({ data, hosts }) {
         title="Konfirmasi Data"
         subtitle="Periksa kembali data Anda sebelum mengirim."
       />
+
+      {data.guestPhoto && (
+        <div className="p-3.5 rounded-2xl border border-[var(--tm-line)] bg-white flex items-center gap-3.5 shadow-xs">
+          <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-zinc-200 shrink-0 bg-zinc-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={data.guestPhoto}
+              alt="Foto Wajah Tamu"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] text-[var(--tm-muted)] font-medium">Foto Wajah Terverifikasi</p>
+            <p className="text-sm font-bold text-[var(--tm-forest)] truncate">{data.guestName}</p>
+            <span className="inline-block mt-0.5 text-[11px] text-emerald-700 font-medium">
+              ✓ Siap digunakan untuk verifikasi fisik
+            </span>
+          </div>
+        </div>
+      )}
 
       <div className="rounded-xl border border-[var(--tm-line)] overflow-hidden divide-y divide-[var(--tm-line)]">
         {rows.map(({ label, value, icon: Icon }) => (

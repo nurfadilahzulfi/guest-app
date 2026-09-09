@@ -1,12 +1,9 @@
 import { respondToVisit, getVisitByActionToken } from "@/application/use-cases/respond-to-visit";
 import { prismaVisitRepository } from "@/infrastructure/repositories/prisma-visit-repository";
 import { cryptoTokenService } from "@/infrastructure/tokens/crypto-token-service";
+import { emailNotificationService } from "@/infrastructure/notifications/email-notification-service";
 import { prisma } from "@/infrastructure/prisma/client";
 
-/**
- * GET /api/visits/respond/[token] — Validasi token dan tampilkan data visit.
- * GET tidak boleh mengubah data apa pun (AGENTS.md Bagian 9 Rule #3).
- */
 export async function GET(request, { params }) {
   try {
     const { token } = await params;
@@ -48,10 +45,6 @@ export async function GET(request, { params }) {
   }
 }
 
-/**
- * POST /api/visits/respond/[token] — Approve atau reject kunjungan.
- * Token divalidasi dan di-consume dalam satu transaksi (AGENTS.md Bagian 9 Rule #2).
- */
 export async function POST(request, { params }) {
   try {
     const { token } = await params;
@@ -64,6 +57,7 @@ export async function POST(request, { params }) {
       );
     }
 
+    const appUrl = process.env.APP_URL || "http://localhost:3000";
     const visit = await respondToVisit({
       token,
       action: body.action,
@@ -71,6 +65,8 @@ export async function POST(request, { params }) {
       visitRepository: prismaVisitRepository,
       tokenService: cryptoTokenService,
       transaction: (fn) => prisma.$transaction(fn),
+      notificationService: emailNotificationService,
+      appUrl,
     });
 
     return Response.json({

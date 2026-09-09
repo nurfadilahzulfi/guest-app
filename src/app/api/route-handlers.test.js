@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock auth-options
 vi.mock("@/infrastructure/auth/auth-options", () => ({
   auth: vi.fn(),
 }));
@@ -10,7 +9,7 @@ import { GET as getHosts, POST as postHosts, PATCH as patchHosts } from "./hosts
 import { GET as getOwners, POST as postOwners, PATCH as patchOwners } from "./owners/route";
 import { GET as getUsers, PATCH as patchUsers } from "./users/route";
 import { POST as postInvite } from "./users/invite/route";
-import { GET as getVisits, POST as postVisits } from "./visits/route";
+import { GET as getVisits, POST as postVisits, PATCH as patchVisits } from "./visits/route";
 import { GET as getRespond, POST as postRespond } from "./visits/respond/[token]/route";
 import { GET as getStatus } from "./visits/status/[token]/route";
 import { GET as getInvite, POST as postInviteToken } from "./invite/[token]/route";
@@ -214,6 +213,60 @@ describe("API Route Handlers — Otorisasi Server-Side & Status Code (AGENTS.md 
 
       expect(res.status).toBe(200);
       expect(findAllSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("PATCH /api/visits harus menolak 401 jika belum login", async () => {
+      auth.mockResolvedValue(null);
+
+      const req = new Request("http://localhost/api/visits", {
+        method: "PATCH",
+        body: JSON.stringify({ visitId: "v-1", action: "APPROVED" }),
+      });
+      const res = await patchVisits(req);
+      expect(res.status).toBe(401);
+    });
+
+    it("PATCH /api/visits harus menolak 403 jika login BUKAN sebagai HOST", async () => {
+      auth.mockResolvedValue({ user: { id: "admin-1", role: "ADMINISTRATOR" } });
+
+      const req = new Request("http://localhost/api/visits", {
+        method: "PATCH",
+        body: JSON.stringify({ visitId: "v-1", action: "APPROVED" }),
+      });
+      const res = await patchVisits(req);
+      expect(res.status).toBe(403);
+    });
+
+    it("PATCH /api/visits harus mengembalikan 200 jika HOST menyetujui kunjungannya", async () => {
+      auth.mockResolvedValue({ user: { id: "host-1", role: "HOST" } });
+
+      vi.spyOn(prismaVisitRepository, "findById").mockResolvedValue({
+        id: "v-1",
+        hostId: "host-1",
+        status: "PENDING",
+      });
+
+      vi.spyOn(prismaVisitRepository, "updateStatus").mockResolvedValue({
+        id: "v-1",
+        status: "APPROVED",
+        hostReply: "Silakan masuk",
+        respondedAt: new Date(),
+      });
+
+      const req = new Request("http://localhost/api/visits", {
+        method: "PATCH",
+        body: JSON.stringify({
+          visitId: "v-1",
+          action: "APPROVED",
+          hostReply: "Silakan masuk",
+        }),
+      });
+
+      const res = await patchVisits(req);
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.status).toBe("APPROVED");
+      expect(data.hostReply).toBe("Silakan masuk");
     });
   });
 

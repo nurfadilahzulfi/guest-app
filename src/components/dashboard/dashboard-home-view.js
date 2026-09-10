@@ -5,7 +5,6 @@ import Image from "next/image";
 import {
   IconSearch,
   IconFilter,
-  IconCalendar,
   IconSpinner,
   IconCrown,
   IconUser,
@@ -14,9 +13,26 @@ import {
   IconCheck,
   IconX,
 } from "@/components/icons/guest-icons";
+import dynamic from "next/dynamic";
 import { StatsCard } from "./stats-card";
 import { VisitDetailModal } from "./visit-detail-modal";
 import { QuickRespondModal } from "./quick-respond-modal";
+
+const DashboardCharts = dynamic(
+  () => import("./dashboard-charts").then((mod) => mod.DashboardCharts),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-4 sm:space-y-5 animate-pulse">
+        <div className="h-6 bg-zinc-200/70 rounded-lg w-56" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
+          <div className="bg-white rounded-3xl border border-zinc-200/90 p-5 shadow-xs lg:col-span-2 h-72" />
+          <div className="bg-white rounded-3xl border border-zinc-200/90 p-5 shadow-xs h-72" />
+        </div>
+      </div>
+    ),
+  }
+);
 
 /**
  * Tampilan utama Dashboard interaktif adaptif multi-role.
@@ -29,6 +45,7 @@ export function DashboardHomeView({ user }) {
 
   const [visits, setVisits] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [summaryStats, setSummaryStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedVisit, setSelectedVisit] = useState(null);
   const [quickResponding, setQuickResponding] = useState(null);
@@ -69,9 +86,24 @@ export function DashboardHomeView({ user }) {
     }
   }, [page, statusFilter, visitorTypeFilter, departmentFilter, dateFrom, dateTo]);
 
+  const fetchStatsSummary = useCallback(async () => {
+    try {
+      const res = await fetch("/api/visits/stats");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.summary) {
+          setSummaryStats(json.summary);
+        }
+      }
+    } catch (err) {
+      console.error("Gagal mengambil ringkasan statistik:", err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchVisits();
-  }, [fetchVisits]);
+    fetchStatsSummary();
+  }, [fetchVisits, fetchStatsSummary]);
 
   // Handler respon langsung oleh Host (Approve / Reject)
   const handleDirectRespond = async (visitId, action, hostReply) => {
@@ -111,15 +143,20 @@ export function DashboardHomeView({ user }) {
       );
     }
 
-    await fetchVisits();
+    await Promise.all([fetchVisits(), fetchStatsSummary()]);
     return data;
   };
 
-  // Perhitungan statistik lokal
-  const pendingCount = visits.filter((v) => v.status === "PENDING").length;
-  const approvedCount = visits.filter((v) => v.status === "APPROVED").length;
-  const rejectedCount = visits.filter((v) => v.status === "REJECTED").length;
-  const ownerCount = visits.filter((v) => v.visitorType === "OWNER").length;
+  // Nilai statistik akurat (agregat DB jika tersedia, fallback ke filter lokal)
+  const pendingCount =
+    summaryStats?.pending ?? visits.filter((v) => v.status === "PENDING").length;
+  const approvedCount =
+    summaryStats?.approved ?? visits.filter((v) => v.status === "APPROVED").length;
+  const rejectedCount =
+    summaryStats?.rejected ?? visits.filter((v) => v.status === "REJECTED").length;
+  const ownerCount =
+    summaryStats?.owner ?? visits.filter((v) => v.visitorType === "OWNER").length;
+  const displayTotalCount = summaryStats?.total ?? totalCount;
 
   // Filter pencarian client-side berdasarkan nama / instansi
   const filteredVisits = visits.filter((v) => {
@@ -221,7 +258,7 @@ export function DashboardHomeView({ user }) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
         <StatsCard
           title="Total Kunjungan"
-          value={totalCount}
+          value={displayTotalCount}
           subtitle="Tercatat di sistem"
           icon={IconUser}
         />
@@ -253,6 +290,9 @@ export function DashboardHomeView({ user }) {
           />
         )}
       </div>
+
+      {/* ─── Analitik & Grafik (Adaptif Multi-Role) ───────────────────── */}
+      <DashboardCharts user={user} />
 
       {/* ─── Filter & Toolbar ─────────────────────────────────────────── */}
       <div className="bg-white rounded-3xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs space-y-4">
@@ -353,8 +393,8 @@ export function DashboardHomeView({ user }) {
           </div>
         </div>
 
-        {/* ─── Tampilan Kartu Kunjungan Khusus HP (Mobile Cards, Tanpa Scroll Samping) ─ */}
-        <div className="block sm:hidden space-y-3">
+        {/* ─── Daftar Kunjungan — Card Layout Responsif (Semua Ukuran Layar) ─── */}
+        <div className="space-y-3 sm:space-y-3.5">
           {loading ? (
             <div className="py-12 text-center text-zinc-400 bg-white rounded-2xl border border-zinc-200/90">
               <div className="flex items-center justify-center gap-2">
@@ -497,165 +537,6 @@ export function DashboardHomeView({ user }) {
               </div>
             ))
           )}
-        </div>
-
-        {/* ─── Tabel Data Kunjungan Khusus Layar Tablet / Desktop ─────────── */}
-        <div className="hidden sm:block overflow-x-auto rounded-2xl border border-zinc-200/90">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 uppercase tracking-wider text-[10px] font-bold">
-              <tr>
-                <th className="px-4 py-3.5">Nama Tamu</th>
-                {isHRDorAdmin && <th className="px-4 py-3.5">Kategori</th>}
-                <th className="px-4 py-3.5">Instansi / Organisasi</th>
-                {isHRDorAdmin && <th className="px-4 py-3.5">Pihak Dituju</th>}
-                <th className="px-4 py-3.5">Keperluan</th>
-                <th className="px-4 py-3.5">Waktu Check-In</th>
-                <th className="px-4 py-3.5">Status</th>
-                <th className="px-4 py-3.5 text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100 bg-white">
-              {loading ? (
-                <tr>
-                  <td colSpan={isHRDorAdmin ? 8 : 6} className="py-12 text-center text-zinc-400">
-                    <div className="flex items-center justify-center gap-2">
-                      <IconSpinner className="w-5 h-5 text-zinc-600 animate-spin" />
-                      <span>Memuat data kunjungan...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredVisits.length === 0 ? (
-                <tr>
-                  <td colSpan={isHRDorAdmin ? 8 : 6} className="py-12 text-center text-zinc-400">
-                    <div className="max-w-xs mx-auto space-y-3">
-                      <div className="w-16 h-16 mx-auto relative opacity-70">
-                        <Image
-                          src="/assets/images/dashboard-meeting.png"
-                          alt="Empty State"
-                          fill
-                          className="object-contain"
-                          unoptimized
-                        />
-                      </div>
-                      <p className="text-xs font-semibold text-zinc-600">Belum ada kunjungan yang ditemukan</p>
-                      <p className="text-[11px] text-zinc-400">
-                        Data kunjungan tamu akan muncul di sini secara otomatis setelah tamu check-in.
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredVisits.map((visit) => (
-                  <tr key={visit.id} className="hover:bg-zinc-50/80 transition-colors">
-                    <td className="px-4 py-3 font-semibold text-zinc-900">
-                      <div className="flex items-center gap-2.5">
-                        {visit.guestPhotoUrl ? (
-                          <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-zinc-200 bg-zinc-100">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={visit.guestPhotoUrl}
-                              alt={visit.guestName}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-8 h-8 rounded-lg shrink-0 bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-400">
-                            <IconUser className="w-4 h-4" />
-                          </div>
-                        )}
-                        <div className="min-w-0">
-                          <span className="truncate block">{visit.guestName}</span>
-                          <p className="text-[10px] text-zinc-400 font-mono font-normal">
-                            {visit.guestPhone}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-
-                    {isHRDorAdmin && (
-                      <td className="px-4 py-3">
-                        {visit.visitorType === "OWNER" ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
-                            <IconCrown className="w-3 h-3 text-amber-600" />
-                            Owner
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-600">
-                            Reguler
-                          </span>
-                        )}
-                      </td>
-                    )}
-
-                    <td className="px-4 py-3 text-zinc-700">
-                      {visit.organization || "—"}
-                    </td>
-
-                    {isHRDorAdmin && (
-                      <td className="px-4 py-3">
-                        <p className="font-semibold text-zinc-900">{visit.host?.name || "—"}</p>
-                        <p className="text-[10px] text-zinc-400">{visit.host?.department || ""}</p>
-                      </td>
-                    )}
-
-                    <td className="px-4 py-3 text-zinc-700 max-w-xs truncate">
-                      {visit.purpose}
-                    </td>
-
-                    <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">
-                      {formatDate(visit.createdAt)}
-                    </td>
-
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span
-                        className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                          statusBadge[visit.status] || "bg-zinc-100 text-zinc-700"
-                        }`}
-                      >
-                        {statusLabel[visit.status] || visit.status}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-center whitespace-nowrap">
-                      {isHost && visit.status === "PENDING" ? (
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => setQuickResponding({ visit, action: "APPROVED" })}
-                            className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-zinc-900 text-white hover:bg-black transition-colors cursor-pointer"
-                          >
-                            Setujui
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setQuickResponding({ visit, action: "REJECTED" })}
-                            className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100 transition-colors cursor-pointer"
-                          >
-                            Tolak
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedVisit(visit)}
-                            className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-zinc-100 text-zinc-700 hover:bg-zinc-200 transition-colors cursor-pointer"
-                          >
-                            Detail
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedVisit(visit)}
-                          className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-zinc-100 text-zinc-700 hover:bg-zinc-900 hover:text-white transition-colors cursor-pointer"
-                        >
-                          Detail
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
         </div>
       </div>
 

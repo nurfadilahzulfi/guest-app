@@ -13,7 +13,7 @@ export function DashboardShell({ user, children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex">
+    <div className="h-screen overflow-hidden bg-[#F8FAFC] flex">
       {/* Sidebar Navigasi */}
       <Sidebar
         user={user}
@@ -21,10 +21,10 @@ export function DashboardShell({ user, children }) {
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* Area Konten Utama */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Area Konten Utama — scroll sendiri, sidebar diam */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Navbar Mobile */}
-        <header className="lg:hidden bg-white border-b border-zinc-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+        <header className="lg:hidden bg-white border-b border-zinc-200 px-4 py-3 flex items-center justify-between shrink-0 z-30">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
@@ -42,9 +42,11 @@ export function DashboardShell({ user, children }) {
           </span>
         </header>
 
-        {/* Konten Halaman */}
-        <main className="flex-1 p-4 sm:p-7 lg:p-9 max-w-7xl w-full mx-auto">
-          {children}
+        {/* Konten Halaman — area ini yang scroll, bukan seluruh halaman */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-7 lg:p-9">
+          <div className="max-w-7xl mx-auto w-full">
+            {children}
+          </div>
         </main>
       </div>
     </div>

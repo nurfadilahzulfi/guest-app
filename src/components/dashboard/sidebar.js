@@ -81,8 +81,8 @@ export function Sidebar({ user, isOpen, onClose }) {
       {/* Kontainer Sidebar */}
       <aside
         className={`
-          fixed lg:static top-0 bottom-0 left-0 z-50
-          w-76 sm:w-80 max-w-[88vw] bg-white border-r border-zinc-200/90 flex flex-col justify-between overflow-hidden
+          fixed lg:relative top-0 bottom-0 left-0 z-50
+          w-76 sm:w-80 max-w-[88vw] h-full bg-white border-r border-zinc-200/90 flex flex-col justify-between overflow-hidden
           transition-transform duration-200 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full pointer-events-none lg:pointer-events-auto lg:translate-x-0"}
         `}

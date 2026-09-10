@@ -25,6 +25,7 @@
     "nodemailer": "^8.0.11",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "recharts": "^3.10.1",
     "resend": "^6.26.0",
     "uuid": "^14.0.2"
   },

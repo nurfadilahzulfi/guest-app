@@ -44,28 +44,31 @@ export function validateUserInput(input) {
 /**
  * Mengecek apakah user boleh meng-approve/reject kunjungan.
  * Hanya HOST yang bisa approve/reject.
- * @param {UserRole} role
+ * @param {UserRole | {role: UserRole}} roleOrUser
  * @returns {boolean}
  */
-export function canRespondToVisit(role) {
+export function canRespondToVisit(roleOrUser) {
+  const role = typeof roleOrUser === "object" && roleOrUser !== null ? roleOrUser.role : roleOrUser;
   return role === "HOST";
 }
 
 /**
  * Mengecek apakah user memiliki akses administratif penuh.
- * @param {UserRole} role
+ * @param {UserRole | {role: UserRole}} roleOrUser
  * @returns {boolean}
  */
-export function isAdministrator(role) {
+export function isAdministrator(roleOrUser) {
+  const role = typeof roleOrUser === "object" && roleOrUser !== null ? roleOrUser.role : roleOrUser;
   return role === "ADMINISTRATOR";
 }
 
 /**
  * Mengecek apakah user bisa melihat seluruh riwayat kunjungan.
  * ADMIN_HRD dan ADMINISTRATOR bisa, HOST tidak.
- * @param {UserRole} role
+ * @param {UserRole | {role: UserRole}} roleOrUser
  * @returns {boolean}
  */
-export function canViewAllVisits(role) {
+export function canViewAllVisits(roleOrUser) {
+  const role = typeof roleOrUser === "object" && roleOrUser !== null ? roleOrUser.role : roleOrUser;
   return role === "ADMIN_HRD" || role === "ADMINISTRATOR";
 }

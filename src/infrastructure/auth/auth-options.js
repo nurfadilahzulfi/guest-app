@@ -5,6 +5,17 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { prisma } from "@/infrastructure/prisma/client";
 
+// Auto-koreksi runtime jika environment variable masih mengarah ke domain lama tanpa -alpha
+if (process.env.NEXTAUTH_URL && process.env.NEXTAUTH_URL.includes("guest-app.vercel.app") && !process.env.NEXTAUTH_URL.includes("-alpha")) {
+  process.env.NEXTAUTH_URL = "https://guest-app-alpha.vercel.app";
+}
+if (process.env.AUTH_URL && process.env.AUTH_URL.includes("guest-app.vercel.app") && !process.env.AUTH_URL.includes("-alpha")) {
+  process.env.AUTH_URL = "https://guest-app-alpha.vercel.app";
+}
+if (process.env.APP_URL && process.env.APP_URL.includes("guest-app.vercel.app") && !process.env.APP_URL.includes("-alpha")) {
+  process.env.APP_URL = "https://guest-app-alpha.vercel.app";
+}
+
 /**
  * Konfigurasi Auth.js (NextAuth v5).
  * - Credentials Provider (email + password) — bukan OAuth

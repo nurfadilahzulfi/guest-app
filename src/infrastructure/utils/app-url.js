@@ -10,12 +10,18 @@
  * @returns {string} Base URL tanpa trailing slash
  */
 export function getBaseAppUrl() {
-  if (process.env.APP_URL && !process.env.APP_URL.includes("localhost")) {
-    return process.env.APP_URL.replace(/\/$/, "");
+  let url = process.env.APP_URL;
+  if (url && !url.includes("localhost")) {
+    url = url.replace(/\/$/, "");
+    if (url.includes("guest-app.vercel.app") && !url.includes("-alpha")) {
+      return "https://guest-app-alpha.vercel.app";
+    }
+    return url;
   }
 
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`.replace(/\/$/, "");
+    const vUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL.replace(/\/$/, "");
+    return `https://${vUrl}`;
   }
 
   if (process.env.VERCEL_URL) {

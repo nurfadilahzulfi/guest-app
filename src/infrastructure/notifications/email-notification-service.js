@@ -1,13 +1,13 @@
 import nodemailer from "nodemailer";
 import { Resend } from "resend";
 import { prismaUserRepository } from "@/infrastructure/repositories/prisma-user-repository";
+import { getBaseAppUrl } from "@/infrastructure/utils/app-url";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
 const FROM_EMAIL = process.env.SMTP_FROM || process.env.RESEND_FROM || "PT Tanimas Resources Internasional <sap.system@tanimasresources.com>";
-const APP_URL = process.env.APP_URL || "http://localhost:3000";
 
 /**
  * Logo attachment tidak tersedia di Vercel (serverless, read-only filesystem).
@@ -99,6 +99,8 @@ export const emailNotificationService = {
       attachments.push(logoAtt);
     }
 
+    const appUrl = getBaseAppUrl();
+
     // Foto wajah tamu disimpan sebagai Base64 Data URL di database (kompatibel Vercel)
     let photoSrc = null;
     if (visit.guestPhotoUrl) {
@@ -110,13 +112,13 @@ export const emailNotificationService = {
         photoSrc = visit.guestPhotoUrl;
       } else {
         // URL relatif — build ke URL absolut
-        photoSrc = `${APP_URL}${visit.guestPhotoUrl}`;
+        photoSrc = `${appUrl}${visit.guestPhotoUrl}`;
       }
     }
 
     let actionLinks = "";
     if (isActionable && actionToken) {
-      const respondUrl = `${APP_URL}/respond/${actionToken.token}`;
+      const respondUrl = `${appUrl}/respond/${actionToken.token}`;
       actionLinks = `
         <div style="margin: 28px 0 16px 0; text-align: center;">
           <a href="${respondUrl}" style="display: inline-block; padding: 14px 32px; background-color: #18181b; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 15px; letter-spacing: 0.2px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
@@ -238,8 +240,8 @@ export const emailNotificationService = {
    * @param {string} [params.loginUrl] - URL login aplikasi
    */
   async sendAccountCredentialsEmail({ user, password, loginUrl }) {
-    const APP_URL = process.env.APP_URL || "http://localhost:3000";
-    const finalLoginUrl = loginUrl || `${APP_URL}/login`;
+    const appUrl = getBaseAppUrl();
+    const finalLoginUrl = loginUrl || `${appUrl}/login?callbackUrl=/dashboard`;
     const roleMap = {
       HOST: "Karyawan (Host)",
       ADMIN_HRD: "Admin HRD",
@@ -392,8 +394,8 @@ export const emailNotificationService = {
   async notifyGuestOfVisitDecision({ visit, host, action, hostReply, statusUrl }) {
     if (!visit?.guestEmail) return;
 
-    const APP_URL = process.env.APP_URL || "http://localhost:3000";
-    const finalStatusUrl = statusUrl || `${APP_URL}/status/${visit.visitToken}`;
+    const appUrl = getBaseAppUrl();
+    const finalStatusUrl = statusUrl || `${appUrl}/status/${visit.visitToken}`;
     const isApproved = action === "APPROVED";
     const hostName = host?.name || visit.host?.name || "Staf PT. Tanimas";
     const hostDept = host?.department || visit.host?.department || "";

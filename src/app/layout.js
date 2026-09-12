@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Tanimas — Buku Tamu Digital & Check-In Mandiri",
+  title: "Buku Tamu Digital & Check-In Mandiri Tanimas Resources International",
   description: "Sistem registrasi dan check-in mandiri tamu dengan verifikasi visual dan notifikasi instan ke Host.",
   icons: {
     icon: "/assets/logos/tanimas-logo.png",

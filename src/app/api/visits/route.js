@@ -9,6 +9,7 @@ import { localStorageService } from "@/infrastructure/storage/local-storage-serv
 import { auth } from "@/infrastructure/auth/auth-options";
 import { canViewAllVisits } from "@/domain/entities/user";
 import { prisma } from "@/infrastructure/prisma/client";
+import { getRequestAppUrl } from "@/infrastructure/utils/app-url";
 
 
 export async function POST(request) {
@@ -106,7 +107,7 @@ export async function PATCH(request) {
       );
     }
 
-    const appUrl = process.env.APP_URL || "http://localhost:3000";
+    const appUrl = getRequestAppUrl(request);
     const updatedVisit = await respondToVisitDirectly({
       visitId,
       hostUserId: session.user.id,

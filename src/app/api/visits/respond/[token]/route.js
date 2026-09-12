@@ -3,6 +3,7 @@ import { prismaVisitRepository } from "@/infrastructure/repositories/prisma-visi
 import { cryptoTokenService } from "@/infrastructure/tokens/crypto-token-service";
 import { emailNotificationService } from "@/infrastructure/notifications/email-notification-service";
 import { prisma } from "@/infrastructure/prisma/client";
+import { getRequestAppUrl } from "@/infrastructure/utils/app-url";
 
 export async function GET(request, { params }) {
   try {
@@ -57,7 +58,7 @@ export async function POST(request, { params }) {
       );
     }
 
-    const appUrl = process.env.APP_URL || "http://localhost:3000";
+    const appUrl = getRequestAppUrl(request);
     const visit = await respondToVisit({
       token,
       action: body.action,

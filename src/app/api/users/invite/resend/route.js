@@ -3,6 +3,7 @@ import { isAdministrator } from "@/domain/entities/user";
 import { prismaUserRepository } from "@/infrastructure/repositories/prisma-user-repository";
 import { cryptoTokenService } from "@/infrastructure/tokens/crypto-token-service";
 import { emailNotificationService } from "@/infrastructure/notifications/email-notification-service";
+import { getRequestAppUrl } from "@/infrastructure/utils/app-url";
 
 export async function POST(request) {
   try {
@@ -26,7 +27,7 @@ export async function POST(request) {
 
     // Buat token aktivasi baru yang berlaku 72 jam
     const inviteToken = await cryptoTokenService.createInviteToken(user.id, 72);
-    const appUrl = process.env.APP_URL || "http://localhost:3000";
+    const appUrl = getRequestAppUrl(request);
     const inviteUrl = `${appUrl}/invite/${inviteToken.token}`;
 
     // Kirim notifikasi email (opsional, jika SMTP aktif)

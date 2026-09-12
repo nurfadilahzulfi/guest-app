@@ -4,6 +4,7 @@ import { inviteUser } from "@/application/use-cases/invite-user";
 import { prismaUserRepository } from "@/infrastructure/repositories/prisma-user-repository";
 import { cryptoTokenService } from "@/infrastructure/tokens/crypto-token-service";
 import { emailNotificationService } from "@/infrastructure/notifications/email-notification-service";
+import { getRequestAppUrl } from "@/infrastructure/utils/app-url";
 
 export async function POST(request) {
   try {
@@ -16,7 +17,7 @@ export async function POST(request) {
     }
 
     const input = await request.json();
-    const appUrl = process.env.APP_URL || "http://localhost:3000";
+    const appUrl = getRequestAppUrl(request);
 
     const user = await inviteUser({
       input,

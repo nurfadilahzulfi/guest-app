@@ -4,6 +4,7 @@ import { prismaUserRepository } from "@/infrastructure/repositories/prisma-user-
 import { createHost, updateHost, deactivateHost } from "@/application/use-cases/manage-host-directory";
 import { cryptoTokenService } from "@/infrastructure/tokens/crypto-token-service";
 import { emailNotificationService } from "@/infrastructure/notifications/email-notification-service";
+import { getRequestAppUrl } from "@/infrastructure/utils/app-url";
 
 export async function GET() {
   try {
@@ -29,7 +30,7 @@ export async function POST(request) {
     }
 
     const input = await request.json();
-    const appUrl = process.env.APP_URL || "http://localhost:3000";
+    const appUrl = getRequestAppUrl(request);
     const host = await createHost({
       input,
       userRepository: prismaUserRepository,

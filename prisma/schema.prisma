@@ -1,6 +1,3 @@
-// Prisma schema untuk Guest App
-// Lihat AGENTS.md Bagian 6 untuk penjelasan lengkap setiap model
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -32,11 +29,11 @@ model User {
   id               String   @id @default(uuid())
   name             String
   email            String   @unique
-  passwordHash     String?  // null sampai user aktivasi lewat invite; selalu di-hash, tidak pernah plain text
+  passwordHash     String?  
   role             UserRole
-  department       String?  // wajib diisi (di level aplikasi) jika role = HOST
-  position         String?  // wajib diisi (di level aplikasi) jika role = HOST
-  photoUrl         String?  // wajib diisi (di level aplikasi) jika role = HOST
+  department       String?  
+  position         String?  
+  photoUrl         String?  
   isDepartmentHead Boolean  @default(false)
   isActive         Boolean  @default(true)
   createdAt        DateTime @default(now())
@@ -59,7 +56,7 @@ model Visit {
   id           String       @id @default(uuid())
   visitToken   String       @unique @default(uuid())
   guestName    String
-  guestPhone   String       // WAJIB sudah dalam format ternormalisasi (+62xxx), lihat AGENTS.md Bagian 8
+  guestPhone   String       
   guestEmail   String?
   guestPhotoUrl String?
   purpose      String

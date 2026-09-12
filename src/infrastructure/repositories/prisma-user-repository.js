@@ -93,20 +93,28 @@ export const prismaUserRepository = {
   },
 
   /**
-   * List semua host aktif (untuk form check-in tamu).
+   * List semua user aktif yang bisa menjadi host kunjungan tamu.
+   * Mencakup semua role (HOST, ADMIN_HRD, ADMINISTRATOR) selama user aktif
+   * dan memiliki departemen & jabatan yang terisi — karena semua staff yang
+   * punya jabatan formal bisa dikunjungi tamu.
    * @returns {Promise<Object[]>}
    */
   async findActiveHosts() {
     return prisma.user.findMany({
-      where: { role: "HOST", isActive: true },
+      where: {
+        isActive: true,
+        department: { not: null },
+        position: { not: null },
+      },
       select: {
         id: true,
         name: true,
         department: true,
         position: true,
         photoUrl: true,
+        isDepartmentHead: true,
       },
-      orderBy: { name: "asc" },
+      orderBy: [{ department: "asc" }, { name: "asc" }],
     });
   },
 

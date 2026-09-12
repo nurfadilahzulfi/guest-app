@@ -116,45 +116,43 @@ export function EditUserModal({
             </div>
           </div>
 
-          {formData.role === "HOST" && (
-            <>
-              <div className="space-y-3 pt-1">
-                <MasterSelect
-                  label="Departemen"
-                  required
-                  value={formData.department}
-                  onChange={(val) => setFormData({ ...formData, department: val })}
-                  endpoint="/api/departments"
-                  placeholder="Pilih Departemen..."
-                  itemType="departemen"
-                />
-                <MasterSelect
-                  label="Jabatan / Posisi"
-                  required
-                  value={formData.position}
-                  onChange={(val) => setFormData({ ...formData, position: val })}
-                  endpoint="/api/positions"
-                  placeholder="Pilih Jabatan..."
-                  itemType="jabatan"
-                />
-              </div>
-              <div className="pt-1">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={formData.isDepartmentHead}
-                    onChange={(e) =>
-                      setFormData({ ...formData, isDepartmentHead: e.target.checked })
-                    }
-                    className="w-4 h-4 rounded border-zinc-300 accent-zinc-900"
-                  />
-                  <span className="text-xs text-zinc-700 font-medium">
-                    Kepala Departemen (Department Head)
-                  </span>
-                </label>
-              </div>
-            </>
-          )}
+          {/* Departemen, Jabatan, dan status Kepala Departemen ditampilkan untuk semua role.
+               Administrator / Admin HRD yang punya jabatan akan muncul di dropdown buku tamu. */}
+          <div className="space-y-3 pt-1">
+            <MasterSelect
+              label="Departemen"
+              required={formData.role === "HOST"}
+              value={formData.department}
+              onChange={(val) => setFormData({ ...formData, department: val })}
+              endpoint="/api/departments"
+              placeholder="Pilih Departemen..."
+              itemType="departemen"
+            />
+            <MasterSelect
+              label="Jabatan / Posisi"
+              required={formData.role === "HOST"}
+              value={formData.position}
+              onChange={(val) => setFormData({ ...formData, position: val })}
+              endpoint="/api/positions"
+              placeholder="Pilih Jabatan..."
+              itemType="jabatan"
+            />
+          </div>
+          <div className="pt-1">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={formData.isDepartmentHead}
+                onChange={(e) =>
+                  setFormData({ ...formData, isDepartmentHead: e.target.checked })
+                }
+                className="w-4 h-4 rounded border-zinc-300 accent-zinc-900"
+              />
+              <span className="text-xs text-zinc-700 font-medium">
+                Kepala Departemen (Department Head)
+              </span>
+            </label>
+          </div>
 
           <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-zinc-100">
             <button

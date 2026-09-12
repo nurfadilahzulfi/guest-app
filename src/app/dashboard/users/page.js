@@ -97,13 +97,11 @@ export default function ManageUsersPage() {
         email: formData.email.trim(),
         role: formData.role,
         ...(formData.password?.trim() ? { password: formData.password.trim() } : {}),
-        ...(formData.role === "HOST"
-          ? {
-              department: formData.department.trim(),
-              position: formData.position.trim(),
-              isDepartmentHead: formData.isDepartmentHead,
-            }
-          : {}),
+        // Departemen & jabatan dikirim untuk semua role — Administrator / Admin HRD
+        // yang punya jabatan akan muncul sebagai host di dropdown buku tamu
+        ...(formData.department?.trim() ? { department: formData.department.trim() } : {}),
+        ...(formData.position?.trim() ? { position: formData.position.trim() } : {}),
+        isDepartmentHead: formData.isDepartmentHead || false,
       };
       const res = await fetch("/api/users/invite", {
         method: "POST",

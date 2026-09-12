@@ -12,8 +12,8 @@ import {
 
 /**
  * Komponen pengambilan foto wajah tamu secara langsung melalui kamera.
- * Mendukung live stream browser (pada HTTPS / localhost) dan fallback native camera
- * dengan capture="user" (pada HTTP jaringan lokal di smartphone/Chrome).
+ * Mendukung live stream browser (pada HTTPS / localhost) dan fallback native camera / upload
+ * dengan capture="user" dan input file biasa.
  * 
  * @param {Object} props
  * @param {string|null} props.value - Data URL Base64 foto yang telah diambil
@@ -22,6 +22,7 @@ import {
  */
 export function PhotoCapture({ value, onChange, error }) {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
   const [facingMode, setFacingMode] = useState("user");
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [cameraLoading, setCameraLoading] = useState(false);
@@ -29,6 +30,7 @@ export function PhotoCapture({ value, onChange, error }) {
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const nativeCameraInputRef = useRef(null);
   const fileInputRef = useRef(null);
 
   // Periksa apakah perangkat memiliki lebih dari 1 kamera (kamera depan & belakang)
@@ -53,6 +55,7 @@ export function PhotoCapture({ value, onChange, error }) {
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
+    setIsVideoReady(false);
   }, []);
 
   useEffect(() => {
@@ -82,21 +85,32 @@ export function PhotoCapture({ value, onChange, error }) {
           audio: false,
         };
 
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        streamRef.current = stream;
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (constraintErr) {
+          console.warn("Retrying getUserMedia with basic constraints:", constraintErr);
+          // Fallback ke constraint umum jika device tidak mendukung facingMode / resolusi ideal
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         }
 
+        streamRef.current = stream;
+
+        // Buka tampilan kamera terlebih dahulu agar elemen video di-mount oleh React
         setIsCameraOpen(true);
+        setIsVideoReady(false);
+
+        // Jika elemen video sudah ada di DOM (misal switch camera), pasang stream langsung
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
+        }
       } catch (err) {
         console.warn("Gagal membuka live stream kamera:", err);
         // Jika gagal karena peramban non-HTTPS di HP atau tidak ada getUserMedia,
         // alihkan langsung ke pemicu kamera perangkat (capture="user")
-        if (fileInputRef.current) {
-          fileInputRef.current.click();
+        if (nativeCameraInputRef.current) {
+          nativeCameraInputRef.current.click();
         } else {
           setCameraError(
             "Tidak dapat membuka kamera. Pastikan izin kamera aktif pada peramban Anda."
@@ -109,6 +123,20 @@ export function PhotoCapture({ value, onChange, error }) {
     },
     [facingMode, stopStream]
   );
+
+  // Sambungkan stream ke elemen <video> begitu elemen ter-mount di DOM
+  useEffect(() => {
+    if (isCameraOpen && streamRef.current && videoRef.current) {
+      const video = videoRef.current;
+      if (video.srcObject !== streamRef.current) {
+        video.srcObject = streamRef.current;
+      }
+      video.onloadedmetadata = () => {
+        video.play().catch((err) => console.warn("Video play error:", err));
+      };
+      video.play().catch(() => {});
+    }
+  }, [isCameraOpen]);
 
   // Fungsi utama saat tombol "Buka Kamera" ditekan
   const handleTriggerCamera = () => {
@@ -132,15 +160,15 @@ export function PhotoCapture({ value, onChange, error }) {
       // Pada HTTP non-localhost (misal akses dari HP via IP lokal seperti http://192.168.x.x),
       // Google Chrome memblokir navigator.mediaDevices.
       // Kita langsung gunakan kamera native perangkat (capture="user") yang selalu didukung!
-      if (fileInputRef.current) {
-        fileInputRef.current.click();
+      if (nativeCameraInputRef.current) {
+        nativeCameraInputRef.current.click();
       } else {
         startCamera();
       }
     }
   };
 
-  // Proses gambar yang diambil dari kamera bawaan smartphone
+  // Proses gambar yang diambil dari kamera bawaan smartphone atau berkas gambar
   const handleNativeCameraCapture = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -171,6 +199,7 @@ export function PhotoCapture({ value, onChange, error }) {
         // Ubah menjadi data URL JPEG dengan kompresi 0.85
         const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
         onChange(dataUrl);
+        setCameraError("");
       };
       img.src = event.target.result;
     };
@@ -197,7 +226,10 @@ export function PhotoCapture({ value, onChange, error }) {
   // Ambil snapshot foto dari video feed ke canvas
   const handleCapture = () => {
     const video = videoRef.current;
-    if (!video || !video.videoWidth || !video.videoHeight) return;
+    if (!video || !video.videoWidth || !video.videoHeight) {
+      setCameraError("Kamera sedang memuat gambar, silakan tunggu sebentar.");
+      return;
+    }
 
     const canvas = document.createElement("canvas");
     const videoWidth = video.videoWidth;
@@ -231,6 +263,7 @@ export function PhotoCapture({ value, onChange, error }) {
     stopStream();
     setIsCameraOpen(false);
     onChange(dataUrl);
+    setCameraError("");
   };
 
   // Hapus foto yang sudah diambil
@@ -243,9 +276,18 @@ export function PhotoCapture({ value, onChange, error }) {
       {/* Input tersembunyi khusus memicu kamera native smartphone (capture="user") */}
       <input
         type="file"
-        ref={fileInputRef}
+        ref={nativeCameraInputRef}
         accept="image/*"
         capture="user"
+        className="hidden"
+        onChange={handleNativeCameraCapture}
+      />
+
+      {/* Input tersembunyi untuk upload file / galeri foto sebagai alternatif */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={handleNativeCameraCapture}
       />
@@ -256,17 +298,37 @@ export function PhotoCapture({ value, onChange, error }) {
           {/* Video Feed */}
           <div className="relative aspect-square w-full max-w-xs mx-auto overflow-hidden bg-black flex items-center justify-center">
             <video
-              ref={videoRef}
+              ref={(el) => {
+                videoRef.current = el;
+                if (el && streamRef.current && el.srcObject !== streamRef.current) {
+                  el.srcObject = streamRef.current;
+                  el.play().catch(() => {});
+                }
+              }}
               autoPlay
               playsInline
               muted
-              className={`w-full h-full object-cover ${
-                facingMode === "user" ? "-scale-x-100" : ""
-              }`}
+              onLoadedMetadata={(e) => {
+                e.currentTarget.play().catch(() => {});
+              }}
+              onLoadedData={() => setIsVideoReady(true)}
+              onPlaying={() => setIsVideoReady(true)}
+              onCanPlay={() => setIsVideoReady(true)}
+              className={`w-full h-full object-cover transition-opacity duration-300 ${
+                isVideoReady ? "opacity-100" : "opacity-0"
+              } ${facingMode === "user" ? "-scale-x-100" : ""}`}
             />
 
+            {/* Indikator Menghubungkan Kamera */}
+            {!isVideoReady && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 text-white gap-2.5 z-10">
+                <IconSpinner className="w-8 h-8 animate-spin text-white/80" />
+                <span className="text-xs font-medium text-white/80">Menghubungkan kamera...</span>
+              </div>
+            )}
+
             {/* Bingkai Panduan Posisi Wajah (Face Silhouette Guide) */}
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-20">
               <div className="w-56 h-68 sm:w-60 sm:h-72 rounded-[50%] border-2 border-white/70 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] flex items-end justify-center pb-3">
                 <span className="text-[10px] sm:text-xs font-semibold text-white/90 bg-black/60 px-2.5 py-0.5 rounded-full backdrop-blur-xs">
                   Posisikan wajah di sini
@@ -278,7 +340,7 @@ export function PhotoCapture({ value, onChange, error }) {
             <button
               type="button"
               onClick={handleCloseCamera}
-              className="absolute top-3 right-3 p-2 rounded-full bg-black/60 text-white/90 hover:text-white hover:bg-black/80 transition-colors cursor-pointer"
+              className="absolute top-3 right-3 z-30 p-2 rounded-full bg-black/60 text-white/90 hover:text-white hover:bg-black/80 transition-colors cursor-pointer"
               title="Tutup Kamera"
             >
               <IconX className="w-4 h-4" />
@@ -289,7 +351,7 @@ export function PhotoCapture({ value, onChange, error }) {
               <button
                 type="button"
                 onClick={handleSwitchCamera}
-                className="absolute top-3 left-3 p-2 rounded-full bg-black/60 text-white/90 hover:text-white hover:bg-black/80 transition-colors cursor-pointer"
+                className="absolute top-3 left-3 z-30 p-2 rounded-full bg-black/60 text-white/90 hover:text-white hover:bg-black/80 transition-colors cursor-pointer"
                 title="Ganti Kamera"
               >
                 <IconRotateCcw className="w-4 h-4" />
@@ -298,16 +360,37 @@ export function PhotoCapture({ value, onChange, error }) {
           </div>
 
           {/* Kontrol Shutter di Bagian Bawah */}
-          <div className="p-4 bg-zinc-950 flex items-center justify-center gap-4">
+          <div className="p-4 bg-zinc-950 flex items-center justify-between px-6">
+            <button
+              type="button"
+              onClick={() => {
+                handleCloseCamera();
+                fileInputRef.current?.click();
+              }}
+              className="text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              title="Gunakan berkas foto dari galeri / perangkat"
+            >
+              Pilih Berkas
+            </button>
+
             <button
               type="button"
               onClick={handleCapture}
-              className="group flex items-center justify-center w-16 h-16 rounded-full border-4 border-white/80 p-1 hover:border-white transition-all transform active:scale-95 cursor-pointer"
+              disabled={!isVideoReady}
+              className="group flex items-center justify-center w-16 h-16 rounded-full border-4 border-white/80 p-1 hover:border-white transition-all transform active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               title="Ambil Foto"
             >
               <span className="w-full h-full rounded-full bg-white group-hover:bg-zinc-200 transition-colors flex items-center justify-center">
                 <IconCamera className="w-6 h-6 text-zinc-900" />
               </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCloseCamera}
+              className="text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            >
+              Batal
             </button>
           </div>
         </div>
@@ -376,24 +459,34 @@ export function PhotoCapture({ value, onChange, error }) {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleTriggerCamera}
-            disabled={cameraLoading}
-            className="mt-1 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold transition-all shadow-sm active:scale-98 cursor-pointer disabled:opacity-50"
-          >
-            {cameraLoading ? (
-              <>
-                <IconSpinner className="w-4 h-4" />
-                <span>Membuka Kamera...</span>
-              </>
-            ) : (
-              <>
-                <IconCamera className="w-4 h-4" />
-                <span>Buka Kamera Sekarang</span>
-              </>
-            )}
-          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-2 mt-1">
+            <button
+              type="button"
+              onClick={handleTriggerCamera}
+              disabled={cameraLoading}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold transition-all shadow-sm active:scale-98 cursor-pointer disabled:opacity-50"
+            >
+              {cameraLoading ? (
+                <>
+                  <IconSpinner className="w-4 h-4 animate-spin" />
+                  <span>Membuka Kamera...</span>
+                </>
+              ) : (
+                <>
+                  <IconCamera className="w-4 h-4" />
+                  <span>Buka Kamera Sekarang</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+            >
+              <span>Upload dari Galeri / Berkas</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -401,14 +494,23 @@ export function PhotoCapture({ value, onChange, error }) {
       {cameraError && (
         <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50 text-xs text-amber-900 space-y-2">
           <p>{cameraError}</p>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 text-white font-semibold text-xs hover:bg-black transition-colors cursor-pointer"
-          >
-            <IconCamera className="w-3.5 h-3.5" />
-            <span>Gunakan Kamera Perangkat Langsung</span>
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => nativeCameraInputRef.current?.click()}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 text-white font-semibold text-xs hover:bg-black transition-colors cursor-pointer"
+            >
+              <IconCamera className="w-3.5 h-3.5" />
+              <span>Gunakan Kamera Bawaan</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-300 bg-white text-amber-950 font-semibold text-xs hover:bg-amber-100/50 transition-colors cursor-pointer"
+            >
+              <span>Pilih Berkas Foto</span>
+            </button>
+          </div>
         </div>
       )}
 

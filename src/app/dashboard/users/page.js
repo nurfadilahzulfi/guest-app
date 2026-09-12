@@ -44,7 +44,7 @@ export default function ManageUsersPage() {
   // State edit user
   const [editModalUser, setEditModalUser] = useState(null);
   const [editFormData, setEditFormData] = useState({
-    name: "", email: "", role: "HOST", department: "", position: "", isDepartmentHead: false,
+    name: "", email: "", role: "HOST", department: "", position: "", isDepartmentHead: false, isActive: true,
   });
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editError, setEditError] = useState("");
@@ -171,6 +171,7 @@ export default function ManageUsersPage() {
       name: u.name || "", email: u.email || "", role: u.role || "HOST",
       department: u.department || "", position: u.position || "",
       isDepartmentHead: Boolean(u.isDepartmentHead),
+      isActive: u.isActive !== false, // default true jika tidak ada
     });
     setEditError("");
   };
@@ -192,6 +193,7 @@ export default function ManageUsersPage() {
           department: editFormData.department ? editFormData.department.trim() : "",
           position: editFormData.position ? editFormData.position.trim() : "",
           isDepartmentHead: editFormData.isDepartmentHead,
+          isActive: editFormData.isActive,
         }),
       });
       const data = await res.json();

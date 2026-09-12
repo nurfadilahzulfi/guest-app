@@ -31,9 +31,9 @@ export async function checkInGuest({
   // 2. Normalisasi nomor HP (WAJIB — AGENTS.md Bagian 8)
   const guestPhone = normalizePhoneNumber(input.guestPhone);
 
-  // 3. Cek apakah host valid dan aktif
+  // 3. Cek apakah host valid dan aktif (semua karyawan/administrator aktif dengan jabatan bisa jadi host)
   const host = await userRepository.findById(input.hostId);
-  if (!host || !host.isActive || host.role !== "HOST") {
+  if (!host || !host.isActive) {
     throw new Error("Host tidak ditemukan atau tidak aktif");
   }
 

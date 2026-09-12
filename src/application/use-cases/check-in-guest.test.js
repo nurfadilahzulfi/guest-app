@@ -275,6 +275,60 @@ describe("Use Case: checkInGuest", () => {
     expect(result.status).toBe("APPROVED");
   });
 
+  it("harus mengizinkan pengguna ber-role ADMINISTRATOR dengan status aktif sebagai host tujuan kunjungan", async () => {
+    const mockAdminHost = {
+      id: "admin-1",
+      name: "Diah Fika Satrya",
+      email: "satrya@tanimasresources.com",
+      role: "ADMINISTRATOR",
+      department: "Operasional",
+      position: "Manajer Operasional",
+      isDepartmentHead: true,
+      isActive: true,
+    };
+    const mockVisit = {
+      id: "visit-admin",
+      visitToken: "token-admin",
+      visitorType: "REGULAR",
+      status: "PENDING",
+    };
+    const visitRepository = {
+      create: vi.fn().mockResolvedValue(mockVisit),
+    };
+    const ownerRepository = {
+      findActiveByPhone: vi.fn().mockResolvedValue(null),
+    };
+    const userRepository = {
+      findById: vi.fn().mockResolvedValue(mockAdminHost),
+    };
+    const notificationService = {
+      notifyHostOfVisit: vi.fn().mockResolvedValue(undefined),
+    };
+    const tokenService = {
+      createHostActionToken: vi.fn().mockResolvedValue({ id: "tok-admin", token: "magic-admin" }),
+    };
+
+    const result = await checkInGuest({
+      input: {
+        guestName: "Vendor PT ABC",
+        guestPhone: "081234567890",
+        purpose: "Meeting",
+        hostId: "admin-1",
+      },
+      visitRepository,
+      ownerRepository,
+      userRepository,
+      notificationService,
+      tokenService,
+    });
+
+    expect(result).toEqual(mockVisit);
+    expect(notificationService.notifyHostOfVisit).toHaveBeenCalledWith({
+      visit: expect.objectContaining({ host: mockAdminHost }),
+      actionToken: expect.objectContaining({ token: "magic-admin" }),
+    });
+  });
+
   it("harus melempar error jika host tidak ditemukan atau tidak aktif", async () => {
     const userRepository = {
       findById: vi.fn().mockResolvedValue({ ...mockHost, isActive: false }),

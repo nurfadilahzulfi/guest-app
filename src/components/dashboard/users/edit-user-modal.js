@@ -154,6 +154,36 @@ export function EditUserModal({
             </label>
           </div>
 
+          <div>
+            <label className="block font-semibold text-zinc-700 uppercase tracking-wider text-[10px] mb-1">
+              Status Akun
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, isActive: true })}
+                className={`py-2 px-3 rounded-xl border text-xs font-semibold cursor-pointer transition-colors ${
+                  formData.isActive
+                    ? "bg-zinc-900 text-white border-zinc-900 shadow-2xs"
+                    : "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50"
+                }`}
+              >
+                Aktif
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, isActive: false })}
+                className={`py-2 px-3 rounded-xl border text-xs font-semibold cursor-pointer transition-colors ${
+                  !formData.isActive
+                    ? "bg-zinc-900 text-white border-zinc-900 shadow-2xs"
+                    : "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50"
+                }`}
+              >
+                Nonaktif
+              </button>
+            </div>
+          </div>
+
           <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-zinc-100">
             <button
               type="button"

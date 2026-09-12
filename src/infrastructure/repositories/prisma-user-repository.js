@@ -105,6 +105,10 @@ export const prismaUserRepository = {
         isActive: true,
         department: { not: null },
         position: { not: null },
+        NOT: [
+          { department: "" },
+          { position: "" },
+        ],
       },
       select: {
         id: true,

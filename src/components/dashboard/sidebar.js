@@ -193,7 +193,15 @@ export function Sidebar({ user, isOpen, onClose }) {
 
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={async () => {
+              try {
+                await signOut({ redirect: false });
+              } catch (err) {
+                console.error("Sign out error:", err);
+              } finally {
+                window.location.href = "/login";
+              }
+            }}
             className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 hover:text-red-700 border border-red-200/60 transition-colors cursor-pointer"
           >
             <IconLogOut className="w-4 h-4" />

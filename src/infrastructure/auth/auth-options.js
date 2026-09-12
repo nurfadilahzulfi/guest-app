@@ -13,6 +13,7 @@ import { prisma } from "@/infrastructure/prisma/client";
  * Lihat AGENTS.md Bagian 7 untuk penjelasan lengkap.
  */
 export const authConfig = {
+  trustHost: true,
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: {
@@ -132,6 +133,22 @@ export const authConfig = {
       }
 
       return session;
+    },
+
+    /**
+     * Redirect callback — memastikan URL redirect tidak pernah mengarah ke domain luar yang salah.
+     */
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) {
+        return url;
+      }
+      try {
+        const parsed = new URL(url);
+        if (parsed.origin === baseUrl || parsed.hostname.includes("guest-app-alpha") || parsed.hostname === "localhost") {
+          return url;
+        }
+      } catch {}
+      return "/login";
     },
   },
 };

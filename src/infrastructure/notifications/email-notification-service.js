@@ -1,7 +1,5 @@
 import nodemailer from "nodemailer";
 import { Resend } from "resend";
-import fs from "fs";
-import path from "path";
 import { prismaUserRepository } from "@/infrastructure/repositories/prisma-user-repository";
 
 const resend = process.env.RESEND_API_KEY
@@ -12,19 +10,11 @@ const FROM_EMAIL = process.env.SMTP_FROM || process.env.RESEND_FROM || "PT Tanim
 const APP_URL = process.env.APP_URL || "http://localhost:3000";
 
 /**
- * Mengambil objek attachment logo Tanimas jika file ada di disk lokal.
- * Memungkinkan logo disematkan secara inline (CID) agar tampil tanpa proxy blocker.
- * @returns {Object|null}
+ * Logo attachment tidak tersedia di Vercel (serverless, read-only filesystem).
+ * Selalu mengembalikan null — logo ditampilkan via URL publik di template HTML jika diperlukan.
+ * @returns {null}
  */
 function getLogoAttachment() {
-  const logoPath = path.join(process.cwd(), "public", "assets", "logos", "tanimas-logo.png");
-  if (fs.existsSync(logoPath)) {
-    return {
-      filename: "tanimas-logo.png",
-      path: logoPath,
-      cid: "tanimas-logo",
-    };
-  }
   return null;
 }
 
@@ -109,40 +99,18 @@ export const emailNotificationService = {
       attachments.push(logoAtt);
     }
 
-    // Attach foto wajah tamu secara inline (CID) agar tampil tanpa proxy blocker
+    // Foto wajah tamu disimpan sebagai Base64 Data URL di database (kompatibel Vercel)
     let photoSrc = null;
     if (visit.guestPhotoUrl) {
-      if (visit.guestPhotoUrl.startsWith("/uploads/")) {
-        const fullPhotoPath = path.join(process.cwd(), "public", visit.guestPhotoUrl);
-        if (fs.existsSync(fullPhotoPath)) {
-          attachments.push({
-            filename: "foto-tamu.jpg",
-            path: fullPhotoPath,
-            cid: "guest-photo",
-          });
-          photoSrc = "cid:guest-photo";
-        } else {
-          photoSrc = visit.guestPhotoUrl.startsWith("http")
-            ? visit.guestPhotoUrl
-            : `${APP_URL}${visit.guestPhotoUrl}`;
-        }
-      } else if (visit.guestPhotoUrl.startsWith("data:image/")) {
-        const matches = visit.guestPhotoUrl.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
-        if (matches) {
-          const mime = matches[1].toLowerCase();
-          attachments.push({
-            filename: `foto-tamu.${mime === "jpeg" ? "jpg" : mime}`,
-            content: Buffer.from(matches[2], "base64"),
-            cid: "guest-photo",
-          });
-          photoSrc = "cid:guest-photo";
-        } else {
-          photoSrc = visit.guestPhotoUrl;
-        }
+      if (visit.guestPhotoUrl.startsWith("data:image/")) {
+        // Base64 Data URL — embed langsung ke src <img> di HTML email
+        photoSrc = visit.guestPhotoUrl;
+      } else if (visit.guestPhotoUrl.startsWith("http")) {
+        // URL absolut eksternal
+        photoSrc = visit.guestPhotoUrl;
       } else {
-        photoSrc = visit.guestPhotoUrl.startsWith("http")
-          ? visit.guestPhotoUrl
-          : `${APP_URL}${visit.guestPhotoUrl}`;
+        // URL relatif — build ke URL absolut
+        photoSrc = `${APP_URL}${visit.guestPhotoUrl}`;
       }
     }
 
@@ -581,10 +549,12 @@ export const emailNotificationService = {
           emailData.cc = cc;
         }
         if (attachments.length > 0) {
-          emailData.attachments = attachments.map((att) => ({
-            filename: att.filename,
-            content: att.content || (att.path ? fs.readFileSync(att.path) : undefined),
-          }));
+          emailData.attachments = attachments
+            .filter((att) => att.content)
+            .map((att) => ({
+              filename: att.filename,
+              content: att.content,
+            }));
         }
 
         const { data, error } = await resend.emails.send(emailData);

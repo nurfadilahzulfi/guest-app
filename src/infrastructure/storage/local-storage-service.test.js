@@ -1,36 +1,16 @@
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect } from "vitest";
 import { localStorageService } from "./local-storage-service";
-import fs from "fs/promises";
-import path from "path";
 
 describe("Infrastructure: localStorageService", () => {
-  const createdFiles = [];
-
-  afterAll(async () => {
-    // Cleanup file yang dibuat selama testing
-    for (const fileUrl of createdFiles) {
-      try {
-        const fullPath = path.join(process.cwd(), "public", fileUrl.replace(/^\//, ""));
-        await fs.unlink(fullPath);
-      } catch {
-        // Abaikan jika file sudah tidak ada
-      }
-    }
-  });
-
-  it("harus menyimpan Data URL base64 ke folder uploads dan mengembalikan path URL", async () => {
+  it("harus mengembalikan Base64 Data URL langsung (tanpa menulis ke disk) agar kompatibel dengan Vercel", async () => {
     // 1x1 transparent PNG base64
-    const sampleBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+    const sampleBase64 =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
     const resultUrl = await localStorageService.saveVisitorPhoto(sampleBase64, "test_visitor");
 
-    expect(resultUrl).toMatch(/^\/uploads\/visitors\/test_visitor_[a-f0-9-]+\.png$/);
-    createdFiles.push(resultUrl);
-
-    // Pastikan file benar-benar ada di filesystem
-    const diskPath = path.join(process.cwd(), "public", resultUrl.replace(/^\//, ""));
-    const stat = await fs.stat(diskPath);
-    expect(stat.isFile()).toBe(true);
-    expect(stat.size).toBeGreaterThan(0);
+    // Di Vercel, hasil kembalian adalah Data URL itu sendiri (bukan path file)
+    expect(resultUrl).toBe(sampleBase64);
+    expect(resultUrl).toMatch(/^data:image\//);
   });
 
   it("harus langsung mengembalikan URL jika input sudah berupa URL http/https atau /uploads/", async () => {

@@ -143,9 +143,14 @@ export function EditUserModal({
               <input
                 type="checkbox"
                 checked={formData.isDepartmentHead}
-                onChange={(e) =>
-                  setFormData({ ...formData, isDepartmentHead: e.target.checked })
-                }
+                onChange={(e) => {
+                  const isHead = e.target.checked;
+                  setFormData((prev) => ({
+                    ...prev,
+                    isDepartmentHead: isHead,
+                    position: isHead ? "Head" : (prev.position === "Head" ? "" : prev.position),
+                  }));
+                }}
                 className="w-4 h-4 rounded border-zinc-300 accent-zinc-900"
               />
               <span className="text-xs text-zinc-700 font-medium">

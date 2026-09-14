@@ -5,7 +5,7 @@ import { prisma } from "../prisma/client.js";
 const FILE_PATH = path.join(process.cwd(), "src", "infrastructure", "data", "master-data.json");
 
 const DEFAULT_DEPARTMENTS = ["IT", "PPIC", "HRD", "Finance", "Operasional"];
-const DEFAULT_POSITIONS = ["Head of IT", "Admin PPIC", "Staff", "Manager", "Supervisor"];
+const DEFAULT_POSITIONS = ["Head", "Head of IT", "Admin PPIC", "Staff", "Manager", "Supervisor"];
 
 const TOKEN_KEY_DEPT = "MASTER_DATA_DEPARTMENTS";
 const TOKEN_KEY_POS = "MASTER_DATA_POSITIONS";

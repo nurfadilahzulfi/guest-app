@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import nodemailer from "nodemailer";
 import { Resend } from "resend";
 import { prismaUserRepository } from "@/infrastructure/repositories/prisma-user-repository";
@@ -10,12 +12,35 @@ const resend = process.env.RESEND_API_KEY
 const FROM_EMAIL = process.env.SMTP_FROM || process.env.RESEND_FROM || "PT Tanimas Resources Internasional <sap.system@tanimasresources.com>";
 
 /**
- * Logo attachment tidak tersedia di Vercel (serverless, read-only filesystem).
- * Selalu mengembalikan null — logo ditampilkan via URL publik di template HTML jika diperlukan.
- * @returns {null}
+ * Mendapatkan attachment logo dan URL/CID untuk template email.
+ * Jika file lokal ada, disertakan sebagai inline CID attachment ('cid:tanimas-logo')
+ * agar tampil langsung di email client tanpa ketergantungan koneksi Google Image Proxy ke IP lokal (192.168.x.x).
+ * Jika file lokal tidak ada, fallback ke URL publik absolut.
+ * @param {string} appUrl
+ * @returns {{ attachment: Object|null, src: string }}
  */
-function getLogoAttachment() {
-  return null;
+function getLogoData(appUrl) {
+  try {
+    const logoPath = path.join(process.cwd(), "public", "assets", "logos", "tanimas-logo.png");
+    if (fs.existsSync(logoPath)) {
+      return {
+        attachment: {
+          filename: "tanimas-logo.png",
+          path: logoPath,
+          cid: "tanimas-logo",
+          contentType: "image/png",
+        },
+        src: "cid:tanimas-logo",
+      };
+    }
+  } catch (err) {
+    // Abaikan jika fs tidak dapat diakses
+  }
+
+  return {
+    attachment: null,
+    src: `${appUrl}/assets/logos/tanimas-logo.png`,
+  };
 }
 
 /**
@@ -94,24 +119,36 @@ export const emailNotificationService = {
     const subject = `[${notifType}] Kunjungan dari ${visit.guestName}`;
 
     const attachments = [];
-    const logoAtt = getLogoAttachment();
-    if (logoAtt) {
-      attachments.push(logoAtt);
+    const appUrl = getBaseAppUrl();
+    const logoData = getLogoData(appUrl);
+    if (logoData.attachment) {
+      attachments.push(logoData.attachment);
     }
 
-    const appUrl = getBaseAppUrl();
-
-    // Foto wajah tamu disimpan sebagai Base64 Data URL di database (kompatibel Vercel)
+    // Foto wajah tamu: jika Base64 data URL, pasang sebagai CID inline attachment
+    // agar HTML email sangat ringan (< 15 KB), tidak memicu pemotongan (clipping 102KB) di Gmail,
+    // dan langsung tampil di Gmail app tanpa diblokir oleh Google Image Proxy.
     let photoSrc = null;
     if (visit.guestPhotoUrl) {
       if (visit.guestPhotoUrl.startsWith("data:image/")) {
-        // Base64 Data URL — embed langsung ke src <img> di HTML email
-        photoSrc = visit.guestPhotoUrl;
+        const match = visit.guestPhotoUrl.match(/^data:([^;]+);base64,(.+)$/);
+        if (match) {
+          const mimeType = match[1];
+          const base64Data = match[2];
+          const photoBuffer = Buffer.from(base64Data, "base64");
+          const ext = mimeType.includes("png") ? "png" : "jpg";
+
+          attachments.push({
+            filename: `guest-photo.${ext}`,
+            content: photoBuffer,
+            cid: "guest-photo",
+            contentType: mimeType,
+          });
+          photoSrc = "cid:guest-photo";
+        }
       } else if (visit.guestPhotoUrl.startsWith("http")) {
-        // URL absolut eksternal
         photoSrc = visit.guestPhotoUrl;
       } else {
-        // URL relatif — build ke URL absolut
         photoSrc = `${appUrl}${visit.guestPhotoUrl}`;
       }
     }
@@ -130,30 +167,36 @@ export const emailNotificationService = {
 
     const html = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 20px;">
-        <div style="background: linear-gradient(135deg, #09090b 0%, #27272a 100%); padding: 32px; border-radius: 16px 16px 0 0; text-align: center;">
-          ${logoAtt ? `
-          <div style="margin-bottom: 12px;">
-            <img src="cid:tanimas-logo" alt="PT Tanimas Logo" style="width: 52px; height: 52px; object-fit: contain; display: inline-block; background: #ffffff; padding: 6px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);" />
+        <div style="background-color: #18181b; background: linear-gradient(135deg, #09090b 0%, #27272a 100%); padding: 28px 24px; border-radius: 16px 16px 0 0; text-align: center;">
+          <div style="margin: 0 auto 12px auto; display: inline-block; background-color: #ffffff; padding: 8px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-align: center;">
+            <img
+              src="${logoData.src}"
+              alt="PT. Tanimas Resources Internasional"
+              width="48"
+              height="48"
+              style="width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto; border: 0;"
+            />
           </div>
-          ` : ""}
-          <h1 style="color: #ffffff; margin: 0; font-size: 21px; letter-spacing: -0.5px; font-weight: 700;">PT. Tanimas Resources Internasional</h1>
-          <p style="color: #a1a1aa; margin: 6px 0 0 0; font-size: 13px;">
-            Pemberitahuan Kunjungan Tamu — <span style="color: #38bdf8; font-weight: 600;">${notifType}</span>
+          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. Tanimas Resources Internasional</h1>
+          <p style="color: #cbd5e1 !important; margin: 6px 0 0 0; font-size: 13px; text-align: center;">
+            Pemberitahuan Kunjungan Tamu — <span style="color: #38bdf8 !important; font-weight: 700;">${notifType}</span>
           </p>
         </div>
-        <div style="background: #ffffff; padding: 36px 32px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 16px 16px;">
+        <div style="background-color: #ffffff; padding: 36px 32px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 16px 16px;">
           <h2 style="color: #18181b; margin-top: 0; font-size: 18px;">Permohonan Kunjungan Baru</h2>
           <p style="color: #52525b; font-size: 14px; margin-top: 4px; line-height: 1.5;">
             Tamu telah mendaftarkan diri di pos/lobi dan menunggu konfirmasi dari Anda:
           </p>
 
-          ${visit.guestPhotoUrl ? `
-          <div style="margin: 20px 0 24px 0; text-align: center;" data-photo="${visit.guestPhotoUrl}">
-            <div style="display: inline-block; padding: 4px; background: #ffffff; border: 2px solid #e4e4e7; border-radius: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);">
+          ${photoSrc ? `
+          <div style="margin: 20px 0 24px 0; text-align: center;">
+            <div style="display: inline-block; padding: 4px; background-color: #ffffff; border: 2px solid #e4e4e7; border-radius: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);">
               <img
-                src="${photoSrc || (visit.guestPhotoUrl.startsWith("http") ? visit.guestPhotoUrl : APP_URL + visit.guestPhotoUrl)}"
+                src="${photoSrc}"
                 alt="Foto Wajah Tamu"
-                style="width: 140px; height: 140px; object-fit: cover; border-radius: 12px; display: block;"
+                width="140"
+                height="140"
+                style="width: 140px; height: 140px; object-fit: cover; border-radius: 12px; display: block; border: 0;"
               />
             </div>
             <p style="color: #71717a; font-size: 12px; font-weight: 500; margin: 8px 0 0 0;">Foto Wajah Tamu (Check-in)</p>
@@ -250,24 +293,28 @@ export const emailNotificationService = {
     const roleLabel = roleMap[user.role] || user.role;
 
     const attachments = [];
-    const logoAtt = getLogoAttachment();
-    if (logoAtt) {
-      attachments.push(logoAtt);
+    const logoData = getLogoData(appUrl);
+    if (logoData.attachment) {
+      attachments.push(logoData.attachment);
     }
 
     const subject = `[Guest App] Akun Anda Telah Dibuat — Kredensial Login PT Tanimas Resources Internasional`;
     const html = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 20px;">
-        <div style="background: linear-gradient(135deg, #09090b 0%, #27272a 100%); padding: 32px; border-radius: 16px 16px 0 0; text-align: center;">
-          ${logoAtt ? `
-          <div style="margin-bottom: 12px;">
-            <img src="cid:tanimas-logo" alt="PT Tanimas Logo" style="width: 52px; height: 52px; object-fit: contain; display: inline-block; background: #ffffff; padding: 6px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);" />
+        <div style="background-color: #18181b; background: linear-gradient(135deg, #09090b 0%, #27272a 100%); padding: 28px 24px; border-radius: 16px 16px 0 0; text-align: center;">
+          <div style="margin: 0 auto 12px auto; display: inline-block; background-color: #ffffff; padding: 8px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-align: center;">
+            <img
+              src="${logoData.src}"
+              alt="PT. Tanimas Resources Internasional"
+              width="48"
+              height="48"
+              style="width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto; border: 0;"
+            />
           </div>
-          ` : ""}
-          <h1 style="color: #ffffff; margin: 0; font-size: 21px; letter-spacing: -0.5px; font-weight: 700;">PT. Tanimas Resources Internasional</h1>
-          <p style="color: #a1a1aa; margin: 6px 0 0 0; font-size: 13px;">Sistem Manajemen Tamu (Guest App)</p>
+          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. Tanimas Resources Internasional</h1>
+          <p style="color: #cbd5e1 !important; margin: 6px 0 0 0; font-size: 13px; text-align: center;">Sistem Manajemen Tamu (Guest App)</p>
         </div>
-        <div style="background: #ffffff; padding: 36px 32px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 16px 16px;">
+        <div style="background-color: #ffffff; padding: 36px 32px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 16px 16px;">
           <h2 style="color: #18181b; margin-top: 0; font-size: 18px;">Halo, ${user.name}!</h2>
           <p style="color: #52525b; font-size: 14px; line-height: 1.6;">
             Akun Anda untuk portal <strong>Guest App PT. Tanimas Resources Internasional</strong> telah berhasil dibuat oleh Administrator.
@@ -339,25 +386,30 @@ export const emailNotificationService = {
    * @param {string} params.inviteUrl
    */
   async sendInviteEmail({ user, inviteToken, inviteUrl }) {
+    const appUrl = getBaseAppUrl();
     const attachments = [];
-    const logoAtt = getLogoAttachment();
-    if (logoAtt) {
-      attachments.push(logoAtt);
+    const logoData = getLogoData(appUrl);
+    if (logoData.attachment) {
+      attachments.push(logoData.attachment);
     }
 
     const subject = "Undangan Bergabung — Guest App";
     const html = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 20px;">
-        <div style="background: linear-gradient(135deg, #09090b 0%, #27272a 100%); padding: 32px; border-radius: 16px 16px 0 0; text-align: center;">
-          ${logoAtt ? `
-          <div style="margin-bottom: 12px;">
-            <img src="cid:tanimas-logo" alt="PT Tanimas Logo" style="width: 52px; height: 52px; object-fit: contain; display: inline-block; background: #ffffff; padding: 6px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);" />
+        <div style="background-color: #18181b; background: linear-gradient(135deg, #09090b 0%, #27272a 100%); padding: 28px 24px; border-radius: 16px 16px 0 0; text-align: center;">
+          <div style="margin: 0 auto 12px auto; display: inline-block; background-color: #ffffff; padding: 8px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-align: center;">
+            <img
+              src="${logoData.src}"
+              alt="PT. Tanimas Resources Internasional"
+              width="48"
+              height="48"
+              style="width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto; border: 0;"
+            />
           </div>
-          ` : ""}
-          <h1 style="color: #ffffff; margin: 0; font-size: 21px; letter-spacing: -0.5px; font-weight: 700;">PT. Tanimas Resources Internasional</h1>
-          <p style="color: #a1a1aa; margin: 6px 0 0 0; font-size: 13px;">Undangan Akun Baru</p>
+          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. Tanimas Resources Internasional</h1>
+          <p style="color: #cbd5e1 !important; margin: 6px 0 0 0; font-size: 13px; text-align: center;">Undangan Akun Baru</p>
         </div>
-        <div style="background: #ffffff; padding: 36px 32px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 16px 16px;">
+        <div style="background-color: #ffffff; padding: 36px 32px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 16px 16px;">
           <h2 style="color: #1f2937; margin-top: 0; font-size: 18px;">Halo, ${user.name}!</h2>
           <p style="color: #4b5563; font-size: 14px; line-height: 1.6;">
             Anda telah diundang untuk bergabung dengan portal Guest App PT. Tanimas Resources Internasional sebagai <strong>${user.role}</strong>.
@@ -401,9 +453,9 @@ export const emailNotificationService = {
     const hostDept = host?.department || visit.host?.department || "";
 
     const attachments = [];
-    const logoAtt = getLogoAttachment();
-    if (logoAtt) {
-      attachments.push(logoAtt);
+    const logoData = getLogoData(appUrl);
+    if (logoData.attachment) {
+      attachments.push(logoData.attachment);
     }
 
     const statusTitle = isApproved ? "Disetujui" : "Belum Dapat Diterima";
@@ -418,16 +470,20 @@ export const emailNotificationService = {
 
     const html = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 20px;">
-        <div style="background: linear-gradient(135deg, #09090b 0%, #27272a 100%); padding: 32px; border-radius: 16px 16px 0 0; text-align: center;">
-          ${logoAtt ? `
-          <div style="margin-bottom: 12px;">
-            <img src="cid:tanimas-logo" alt="PT Tanimas Logo" style="width: 52px; height: 52px; object-fit: contain; display: inline-block; background: #ffffff; padding: 6px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);" />
+        <div style="background-color: #18181b; background: linear-gradient(135deg, #09090b 0%, #27272a 100%); padding: 28px 24px; border-radius: 16px 16px 0 0; text-align: center;">
+          <div style="margin: 0 auto 12px auto; display: inline-block; background-color: #ffffff; padding: 8px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-align: center;">
+            <img
+              src="${logoData.src}"
+              alt="PT. Tanimas Resources Internasional"
+              width="48"
+              height="48"
+              style="width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto; border: 0;"
+            />
           </div>
-          ` : ""}
-          <h1 style="color: #ffffff; margin: 0; font-size: 21px; letter-spacing: -0.5px; font-weight: 700;">PT. Tanimas Resources Internasional</h1>
-          <p style="color: #a1a1aa; margin: 6px 0 0 0; font-size: 13px;">Pemberitahuan Status Kunjungan Tamu</p>
+          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. Tanimas Resources Internasional</h1>
+          <p style="color: #cbd5e1 !important; margin: 6px 0 0 0; font-size: 13px; text-align: center;">Pemberitahuan Status Kunjungan Tamu</p>
         </div>
-        <div style="background: #ffffff; padding: 36px 32px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 16px 16px;">
+        <div style="background-color: #ffffff; padding: 36px 32px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 16px 16px;">
           <h2 style="color: #18181b; margin-top: 0; font-size: 18px;">Halo, ${visit.guestName}!</h2>
           <p style="color: #52525b; font-size: 14px; line-height: 1.6;">
             Permohonan kunjungan yang Anda ajukan di lobi kami telah ditanggapi oleh staf yang bersangkutan:
@@ -552,11 +608,25 @@ export const emailNotificationService = {
         }
         if (attachments.length > 0) {
           emailData.attachments = attachments
-            .filter((att) => att.content)
-            .map((att) => ({
-              filename: att.filename,
-              content: att.content,
-            }));
+            .map((att) => {
+              let content = att.content;
+              if (!content && att.path) {
+                try {
+                  if (fs.existsSync(att.path)) {
+                    content = fs.readFileSync(att.path);
+                  }
+                } catch {
+                  // ignore
+                }
+              }
+              if (!content) return null;
+              return {
+                filename: att.filename,
+                content,
+                cid: att.cid,
+              };
+            })
+            .filter(Boolean);
         }
 
         const { data, error } = await resend.emails.send(emailData);

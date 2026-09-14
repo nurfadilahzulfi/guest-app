@@ -162,6 +162,49 @@ describe("Infrastructure: emailNotificationService — Matriks Routing Notifikas
     expect(callArgs.html).toContain("Foto Wajah Tamu (Check-in)");
   });
 
+  it("harus mengubah Base64 photo menjadi inline CID attachment dan menjaga ukuran HTML di bawah batas Gmail (102 KB)", async () => {
+    const sendEmailSpy = vi.spyOn(emailNotificationService, "_sendEmail").mockResolvedValue();
+
+    // Simulasi data URL Base64 kamera selfie check-in
+    const fakeBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+    const base64PhotoUrl = `data:image/png;base64,${fakeBase64}`;
+
+    await emailNotificationService.notifyHostOfVisit({
+      visit: {
+        guestName: "Tamu Selfie",
+        guestPhone: "+6281234567890",
+        purpose: "Konsultasi",
+        visitorType: "REGULAR",
+        status: "PENDING",
+        guestPhotoUrl: base64PhotoUrl,
+        host: staffHost,
+      },
+      actionToken: { token: "token-selfie" },
+    });
+
+    const callArgs = sendEmailSpy.mock.calls[0][0];
+
+    // 1. Attachment harus memiliki inline CID untuk guest photo
+    const photoAttachment = callArgs.attachments.find((att) => att.cid === "guest-photo");
+    expect(photoAttachment).toBeDefined();
+    expect(photoAttachment.contentType).toBe("image/png");
+    expect(Buffer.isBuffer(photoAttachment.content)).toBe(true);
+
+    // 2. HTML harus menggunakan src="cid:guest-photo" dan BUKAN base64 mentah
+    expect(callArgs.html).toContain('src="cid:guest-photo"');
+    expect(callArgs.html).not.toContain(fakeBase64);
+    expect(callArgs.html).not.toContain("data-photo=");
+
+    // 3. Ukuran HTML harus sangat ringan (< 15 KB), jauh di bawah batas pemotongan 102 KB Gmail
+    const htmlSizeBytes = Buffer.byteLength(callArgs.html, "utf8");
+    expect(htmlSizeBytes).toBeLessThan(15000); // 15 KB max, Gmail clips at 102.4 KB
+
+    // 4. Logo harus disertakan
+    expect(callArgs.html).toContain("PT. Tanimas Resources Internasional");
+    const logoAttachment = callArgs.attachments.find((att) => att.cid === "tanimas-logo");
+    expect(logoAttachment).toBeDefined();
+  });
+
   it("sendInviteEmail harus mengirim email undangan berisi link aktivasi akun", async () => {
     const sendEmailSpy = vi.spyOn(emailNotificationService, "_sendEmail").mockResolvedValue();
 

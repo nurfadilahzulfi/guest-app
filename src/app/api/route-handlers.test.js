@@ -12,6 +12,7 @@ import { POST as postInvite } from "./users/invite/route";
 import { GET as getVisits, POST as postVisits, PATCH as patchVisits, DELETE as deleteVisits } from "./visits/route";
 import { GET as getRespond, POST as postRespond } from "./visits/respond/[token]/route";
 import { GET as getStatus } from "./visits/status/[token]/route";
+import { GET as getPhoto } from "./visits/photo/[token]/route";
 import { GET as getInvite, POST as postInviteToken } from "./invite/[token]/route";
 
 import { prismaUserRepository } from "@/infrastructure/repositories/prisma-user-repository";
@@ -400,6 +401,28 @@ describe("API Route Handlers — Otorisasi Server-Side & Status Code (AGENTS.md 
       expect(res200.status).toBe(200);
       const data = await res200.json();
       expect(data.guestPhotoUrl).toBe("/uploads/visitors/photo.jpg");
+    });
+
+    it("GET /api/visits/photo/[token] menyajikan foto binary JPEG/PNG langsung", async () => {
+      // 404 jika tidak ditemukan
+      vi.spyOn(prismaVisitRepository, "findByVisitToken").mockResolvedValue(null);
+      const res404 = await getPhoto(new Request("http://localhost"), {
+        params: Promise.resolve({ token: "unknown" }),
+      });
+      expect(res404.status).toBe(404);
+
+      // 200 jika foto Base64 valid
+      const fakeBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+      vi.spyOn(prismaVisitRepository, "findByVisitToken").mockResolvedValue({
+        visitToken: "valid-tok",
+        guestPhotoUrl: `data:image/png;base64,${fakeBase64}`,
+      });
+      const res200 = await getPhoto(new Request("http://localhost"), {
+        params: Promise.resolve({ token: "valid-tok" }),
+      });
+      expect(res200.status).toBe(200);
+      expect(res200.headers.get("Content-Type")).toBe("image/png");
+      expect(res200.headers.get("Cache-Control")).toContain("public");
     });
   });
 

@@ -2,16 +2,14 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
-  IconPlus,
   IconCheck,
-  IconX,
   IconSpinner,
   IconChevronDown,
 } from "@/components/icons/guest-icons";
 
 /**
  * Komponen dropdown terpadu untuk Master Data (Departemen & Jabatan).
- * Menyediakan dropdown pilihan terstandardisasi dengan fitur tambah data baru.
+ * Menyediakan dropdown pilihan terstandardisasi dari data master.
  *
  * @param {Object} props
  * @param {string} props.label - Label field
@@ -34,10 +32,6 @@ export function MasterSelect({
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
-  const [newItemName, setNewItemName] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
 
   const dropdownRef = useRef(null);
 
@@ -67,85 +61,26 @@ export function MasterSelect({
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsOpen(false);
-        setIsAdding(false);
-        setNewItemName("");
-        setError("");
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSaveNew = async (e) => {
-    e?.preventDefault();
-    if (!newItemName.trim()) {
-      setError(`Nama ${itemType} tidak boleh kosong.`);
-      return;
-    }
-
-    setSaving(true);
-    setError("");
-
-    try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newItemName.trim() }),
-      });
-
-      const updatedList = await res.json();
-      if (!res.ok) throw new Error(updatedList.error || `Gagal menambahkan ${itemType}.`);
-
-      if (Array.isArray(updatedList)) {
-        setItems(updatedList);
-      } else {
-        await fetchItems();
-      }
-
-      window.dispatchEvent(new Event("master-data-updated"));
-      onChange(newItemName.trim());
-      setIsAdding(false);
-      setNewItemName("");
-      setIsOpen(false);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   return (
     <div className="space-y-1.5 text-xs" ref={dropdownRef}>
-      {/* Header Label & Tombol Tambah */}
-      <div className="flex items-center justify-between">
+      {/* Header Label */}
+      <div>
         <label className="block font-semibold text-zinc-700 uppercase tracking-wider text-[10px]">
           {label} {required && "*"}
         </label>
-        {!isAdding && (
-          <button
-            type="button"
-            onClick={() => {
-              setIsAdding(true);
-              setIsOpen(true);
-              setError("");
-            }}
-            className="text-[10px] font-semibold text-zinc-800 hover:text-black hover:underline inline-flex items-center gap-1 cursor-pointer"
-          >
-            <IconPlus className="w-3 h-3 text-zinc-700" />
-            <span>Tambah {itemType} baru</span>
-          </button>
-        )}
       </div>
 
-      {/* Baris Input Dropdown (Tanpa tombol edit & hapus) */}
+      {/* Baris Input Dropdown */}
       <div className="relative">
         <button
           type="button"
-          onClick={() => {
-            setIsOpen((prev) => !prev);
-            setIsAdding(false);
-            setError("");
-          }}
+          onClick={() => setIsOpen((prev) => !prev)}
           className="w-full flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50/50 hover:bg-white px-3.5 py-2.5 text-xs text-left focus:outline-none focus:border-zinc-900 transition-colors shadow-2xs cursor-pointer"
         >
           <span className={value ? "text-zinc-900 font-semibold truncate" : "text-zinc-400"}>
@@ -161,69 +96,6 @@ export function MasterSelect({
         {/* Panel Dropdown */}
         {isOpen && (
           <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-zinc-200 rounded-2xl shadow-xl overflow-hidden animate-scaleIn">
-            {/* Form Tambah Item Baru */}
-            {isAdding && (
-              <div className="p-3 border-b border-zinc-100 bg-zinc-50/80 space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-bold text-zinc-800">
-                    Tambah {itemType} baru:
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsAdding(false);
-                      setNewItemName("");
-                      setError("");
-                    }}
-                    className="p-1 rounded-md text-zinc-400 hover:bg-zinc-200 cursor-pointer"
-                  >
-                    <IconX className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="text"
-                    autoFocus
-                    placeholder={`Ketik nama ${itemType}...`}
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleSaveNew();
-                      }
-                      if (e.key === "Escape") {
-                        setIsAdding(false);
-                        setNewItemName("");
-                      }
-                    }}
-                    className="flex-1 rounded-xl border border-zinc-300 bg-white px-3 py-1.5 text-xs text-zinc-900 focus:outline-none focus:border-zinc-900"
-                  />
-                  <button
-                    type="button"
-                    disabled={saving}
-                    onClick={handleSaveNew}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-black text-white text-[11px] font-bold cursor-pointer disabled:opacity-50 shrink-0"
-                  >
-                    {saving ? (
-                      <IconSpinner className="w-3 h-3" />
-                    ) : (
-                      <IconCheck className="w-3 h-3" />
-                    )}
-                    <span>Simpan</span>
-                  </button>
-                </div>
-                {error && <p className="text-[10px] text-red-600 font-medium">{error}</p>}
-              </div>
-            )}
-
-            {/* Error Message banner */}
-            {error && !isAdding && (
-              <div className="px-3 py-1.5 bg-red-50 border-b border-red-100 text-[10px] text-red-600 font-medium">
-                {error}
-              </div>
-            )}
-
             {/* Daftar Item Master */}
             <div className="max-h-52 overflow-y-auto divide-y divide-zinc-100">
               {loading ? (
@@ -231,16 +103,9 @@ export function MasterSelect({
                   <IconSpinner className="w-4 h-4" />
                   <span className="text-xs">Memuat daftar {itemType}...</span>
                 </div>
-              ) : items.length === 0 && !isAdding ? (
+              ) : items.length === 0 ? (
                 <div className="p-4 text-center text-zinc-400 text-xs">
-                  Belum ada pilihan {itemType}.{" "}
-                  <button
-                    type="button"
-                    onClick={() => setIsAdding(true)}
-                    className="font-bold text-zinc-800 underline cursor-pointer"
-                  >
-                    Tambah sekarang
-                  </button>
+                  Belum ada pilihan {itemType}.
                 </div>
               ) : (
                 items.map((item) => (
@@ -268,40 +133,9 @@ export function MasterSelect({
                 ))
               )}
             </div>
-
-            {/* Opsi Tambah Baru di Bawah List */}
-            {!isAdding && items.length > 0 && (
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAdding(true);
-                  setError("");
-                }}
-                className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold text-zinc-700 hover:text-black hover:bg-zinc-50 border-t border-zinc-100 cursor-pointer transition-colors"
-              >
-                <IconPlus className="w-3 h-3" />
-                <span>Tambah {itemType} baru</span>
-              </button>
-            )}
           </div>
         )}
       </div>
-
-      {!isOpen && items.length === 0 && !loading && (
-        <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-amber-50/70 border border-amber-200/60 text-amber-800 text-[11px]">
-          <span>Master data {itemType} belum ada.</span>
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(true);
-              setIsAdding(true);
-            }}
-            className="font-bold underline hover:text-amber-900 cursor-pointer shrink-0"
-          >
-            + Tambah Sekarang
-          </button>
-        </div>
-      )}
     </div>
   );
 }

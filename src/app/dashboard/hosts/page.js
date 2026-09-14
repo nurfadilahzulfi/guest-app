@@ -197,77 +197,66 @@ export default function ManageHostsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Halaman */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1
-            className="text-xl sm:text-2xl font-extrabold text-zinc-900 tracking-tight"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Data Karyawan &amp; Pimpinan
-          </h1>
-          <p className="text-xs sm:text-sm text-zinc-500 mt-1">
-            Daftar seluruh staf dan pimpinan yang dapat dipilih tamu saat registrasi kunjungan.
-          </p>
+          <h1 className="text-lg font-bold text-zinc-900">Data Karyawan</h1>
+          <p className="text-xs text-zinc-400 mt-0.5">Daftar staf dan pimpinan yang dapat dipilih tamu saat kunjungan.</p>
         </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             type="button"
             onClick={() => setShowMasterModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-800 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-semibold transition-colors cursor-pointer"
           >
-            <IconBuilding className="w-4 h-4 text-zinc-600" />
-            <span>Kelola Departemen &amp; Jabatan</span>
+            <IconBuilding className="w-3.5 h-3.5" />
+            <span>Dept &amp; Jabatan</span>
           </button>
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-semibold transition-colors cursor-pointer"
           >
-            <IconPlus className="w-4 h-4" />
-            <span>Tambah Karyawan Baru</span>
+            <IconPlus className="w-3.5 h-3.5" />
+            <span>Tambah Karyawan</span>
           </button>
         </div>
       </div>
 
       {/* Alert Sukses */}
       {successMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2 animate-fadeIn">
-          <IconCheck className="w-4 h-4 text-emerald-600" />
+        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+          <IconCheck className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
-      {/* Filter & Toolbar + Daftar Karyawan */}
-      <div className="bg-white rounded-3xl border border-zinc-200/90 p-5 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          <div className="relative flex-1 w-full">
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">
-              <IconSearch className="w-4 h-4" />
+      {/* Filter & Daftar */}
+      <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-4">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">
+              <IconSearch className="w-3.5 h-3.5" />
             </div>
             <input
               type="text"
-              placeholder="Cari nama, email, atau jabatan karyawan..."
+              placeholder="Cari nama, email, atau jabatan..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 pl-10 pr-4 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors"
+              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 pl-9 pr-3 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:border-zinc-900 transition-colors"
             />
           </div>
-
-          <div className="w-full sm:w-60">
-            <select
-              value={deptFilter}
-              onChange={(e) => setDeptFilter(e.target.value)}
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-800 focus:outline-none focus:border-zinc-900"
-            >
-              <option value="">Semua Departemen</option>
-              {departments.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={deptFilter}
+            onChange={(e) => setDeptFilter(e.target.value)}
+            className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-700 focus:outline-none focus:border-zinc-900"
+          >
+            <option value="">Semua Departemen</option>
+            {departments.map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
         </div>
 
         <HostsList

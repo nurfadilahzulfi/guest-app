@@ -4,6 +4,7 @@ import nodemailer from "nodemailer";
 import { Resend } from "resend";
 import { prismaUserRepository } from "@/infrastructure/repositories/prisma-user-repository";
 import { getBaseAppUrl } from "@/infrastructure/utils/app-url";
+import { getTanimasLogoBuffer } from "@/infrastructure/assets/logo";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -13,20 +14,20 @@ const FROM_EMAIL = process.env.SMTP_FROM || process.env.RESEND_FROM || "PT Tanim
 
 /**
  * Mendapatkan attachment logo dan URL/CID untuk template email.
- * Jika file lokal ada, disertakan sebagai inline CID attachment ('cid:tanimas-logo')
- * agar tampil langsung di email client tanpa ketergantungan koneksi Google Image Proxy ke IP lokal (192.168.x.x).
- * Jika file lokal tidak ada, fallback ke URL publik absolut.
+ * Menggunakan logo buffer in-memory sehingga 100% kompatibel dengan Serverless Vercel
+ * (tidak pernah gagal akibat keterbatasan read-only filesystem / path di Vercel).
+ * Disertakan sebagai inline CID attachment ('cid:tanimas-logo') agar tampil langsung di email client.
  * @param {string} appUrl
  * @returns {{ attachment: Object|null, src: string }}
  */
 function getLogoData(appUrl) {
   try {
-    const logoPath = path.join(process.cwd(), "public", "assets", "logos", "tanimas-logo.png");
-    if (fs.existsSync(logoPath)) {
+    const logoBuffer = getTanimasLogoBuffer();
+    if (logoBuffer) {
       return {
         attachment: {
           filename: "tanimas-logo.png",
-          path: logoPath,
+          content: logoBuffer,
           cid: "tanimas-logo",
           contentType: "image/png",
         },
@@ -34,7 +35,7 @@ function getLogoData(appUrl) {
       };
     }
   } catch (err) {
-    // Abaikan jika fs tidak dapat diakses
+    // Abaikan jika ada kendala
   }
 
   return {

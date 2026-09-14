@@ -4,6 +4,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  outputFileTracingIncludes: {
+    "/api/**/*": ["./public/assets/**/*"],
+  },
 };
 
 export default nextConfig;

@@ -12,6 +12,7 @@ import {
   IconCalendar,
   IconCrown,
   IconSpinner,
+  IconTrash,
 } from "@/components/icons/guest-icons";
 
 /**
@@ -20,15 +21,19 @@ import {
  * @param {Object|null} props.visit - Objek data kunjungan yang dipilih
  * @param {function(): void} props.onClose - Handler menutup modal
  * @param {boolean} [props.isHost=false] - Apakah user yang membuka adalah Host
+ * @param {boolean} [props.isAdmin=false] - Apakah user yang membuka adalah Administrator
  * @param {string|null} [props.currentUserId=null] - ID user yang sedang login
  * @param {function(string, string, string): Promise<any>} [props.onRespond] - Handler aksi respon host
+ * @param {function(Object): void} [props.onDelete] - Handler aksi hapus kunjungan oleh admin
  */
 export function VisitDetailModal({
   visit,
   onClose,
   isHost = false,
+  isAdmin = false,
   currentUserId = null,
   onRespond = null,
+  onDelete = null,
 }) {
   const [hostReply, setHostReply] = useState("");
   const [submittingAction, setSubmittingAction] = useState(null);
@@ -294,14 +299,30 @@ export function VisitDetailModal({
 
         {/* Footer Modal */}
         <div className="px-6 py-3.5 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={submittingAction !== null}
-            className="px-4 py-2 rounded-xl text-zinc-600 hover:bg-zinc-200 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
-          >
-            Tutup
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submittingAction !== null}
+              className="px-4 py-2 rounded-xl text-zinc-600 hover:bg-zinc-200 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Tutup
+            </button>
+            {isAdmin && onDelete && (
+              <button
+                type="button"
+                disabled={submittingAction !== null}
+                onClick={() => {
+                  onClose();
+                  onDelete(visit);
+                }}
+                className="px-3.5 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <IconTrash className="w-3.5 h-3.5 text-red-600" />
+                <span>Hapus Kunjungan</span>
+              </button>
+            )}
+          </div>
 
           {canRespond && (
             <div className="flex items-center gap-2">

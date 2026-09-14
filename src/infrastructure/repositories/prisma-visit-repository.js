@@ -183,4 +183,26 @@ export const prismaVisitRepository = {
 
     return { data, total };
   },
+
+  /**
+   * Menghapus satu kunjungan tamu beserta token terkait.
+   * @param {string} id
+   * @param {Object} [tx] - Prisma transaction client (opsional)
+   * @returns {Promise<Object>}
+   */
+  async delete(id, tx) {
+    const client = tx || prisma;
+    await client.hostActionToken.deleteMany({ where: { visitId: id } });
+    return client.visit.delete({ where: { id } });
+  },
+
+  /**
+   * Menghapus beberapa kunjungan tamu sekaligus (bulk delete).
+   * @param {string[]} ids
+   * @returns {Promise<{count: number}>}
+   */
+  async deleteMany(ids) {
+    await prisma.hostActionToken.deleteMany({ where: { visitId: { in: ids } } });
+    return prisma.visit.deleteMany({ where: { id: { in: ids } } });
+  },
 };

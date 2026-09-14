@@ -9,7 +9,7 @@ import { GET as getHosts, POST as postHosts, PATCH as patchHosts } from "./hosts
 import { GET as getOwners, POST as postOwners, PATCH as patchOwners } from "./owners/route";
 import { GET as getUsers, PATCH as patchUsers } from "./users/route";
 import { POST as postInvite } from "./users/invite/route";
-import { GET as getVisits, POST as postVisits, PATCH as patchVisits } from "./visits/route";
+import { GET as getVisits, POST as postVisits, PATCH as patchVisits, DELETE as deleteVisits } from "./visits/route";
 import { GET as getRespond, POST as postRespond } from "./visits/respond/[token]/route";
 import { GET as getStatus } from "./visits/status/[token]/route";
 import { GET as getInvite, POST as postInviteToken } from "./invite/[token]/route";
@@ -267,6 +267,70 @@ describe("API Route Handlers — Otorisasi Server-Side & Status Code (AGENTS.md 
       const data = await res.json();
       expect(data.status).toBe("APPROVED");
       expect(data.hostReply).toBe("Silakan masuk");
+    });
+
+    it("DELETE /api/visits harus menolak 401 jika belum login", async () => {
+      auth.mockResolvedValue(null);
+
+      const req = new Request("http://localhost/api/visits", {
+        method: "DELETE",
+        body: JSON.stringify({ visitId: "v-1" }),
+      });
+      const res = await deleteVisits(req);
+      expect(res.status).toBe(401);
+    });
+
+    it("DELETE /api/visits harus menolak 403 jika role bukan ADMINISTRATOR", async () => {
+      auth.mockResolvedValue({ user: { id: "host-1", role: "HOST" } });
+
+      const req = new Request("http://localhost/api/visits", {
+        method: "DELETE",
+        body: JSON.stringify({ visitId: "v-1" }),
+      });
+      const res = await deleteVisits(req);
+      expect(res.status).toBe(403);
+    });
+
+    it("DELETE /api/visits harus mengembalikan 400 jika tidak menyertakan visitId atau visitIds", async () => {
+      auth.mockResolvedValue({ user: { id: "admin-1", role: "ADMINISTRATOR" } });
+
+      const req = new Request("http://localhost/api/visits", {
+        method: "DELETE",
+        body: JSON.stringify({}),
+      });
+      const res = await deleteVisits(req);
+      expect(res.status).toBe(400);
+    });
+
+    it("DELETE /api/visits harus mengembalikan 200 saat Administrator menghapus 1 kunjungan", async () => {
+      auth.mockResolvedValue({ user: { id: "admin-1", role: "ADMINISTRATOR" } });
+      const deleteSpy = vi.spyOn(prismaVisitRepository, "delete").mockResolvedValue({ id: "v-1" });
+
+      const req = new Request("http://localhost/api/visits", {
+        method: "DELETE",
+        body: JSON.stringify({ visitId: "v-1" }),
+      });
+      const res = await deleteVisits(req);
+      expect(res.status).toBe(200);
+      expect(deleteSpy).toHaveBeenCalledWith("v-1");
+      const data = await res.json();
+      expect(data.success).toBe(true);
+    });
+
+    it("DELETE /api/visits harus mengembalikan 200 saat Administrator menghapus banyak kunjungan sekaligus (bulk)", async () => {
+      auth.mockResolvedValue({ user: { id: "admin-1", role: "ADMINISTRATOR" } });
+      const deleteManySpy = vi.spyOn(prismaVisitRepository, "deleteMany").mockResolvedValue({ count: 3 });
+
+      const req = new Request("http://localhost/api/visits", {
+        method: "DELETE",
+        body: JSON.stringify({ visitIds: ["v-1", "v-2", "v-3"] }),
+      });
+      const res = await deleteVisits(req);
+      expect(res.status).toBe(200);
+      expect(deleteManySpy).toHaveBeenCalledWith(["v-1", "v-2", "v-3"]);
+      const data = await res.json();
+      expect(data.success).toBe(true);
+      expect(data.count).toBe(3);
     });
   });
 

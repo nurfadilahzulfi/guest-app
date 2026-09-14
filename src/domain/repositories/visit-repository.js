@@ -9,6 +9,8 @@
  * @property {function(string, Object): Promise<Object>} updateStatus - Update status visit (APPROVED/REJECTED)
  * @property {function(Object): Promise<{data: Object[], total: number}>} findAll - List semua visit dengan filter & pagination
  * @property {function(string, Object): Promise<{data: Object[], total: number}>} findByHostId - List visit milik host tertentu
+ * @property {function(string): Promise<Object>} delete - Menghapus satu kunjungan tamu beserta token terkait
+ * @property {function(string[]): Promise<{count: number}>} deleteMany - Menghapus beberapa kunjungan tamu sekaligus
  */
 
 /**

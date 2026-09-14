@@ -7,7 +7,7 @@ import { emailNotificationService } from "@/infrastructure/notifications/email-n
 import { cryptoTokenService } from "@/infrastructure/tokens/crypto-token-service";
 import { localStorageService } from "@/infrastructure/storage/local-storage-service";
 import { auth } from "@/infrastructure/auth/auth-options";
-import { canViewAllVisits } from "@/domain/entities/user";
+import { canViewAllVisits, isAdministrator } from "@/domain/entities/user";
 import { prisma } from "@/infrastructure/prisma/client";
 import { getRequestAppUrl } from "@/infrastructure/utils/app-url";
 
@@ -137,6 +137,45 @@ export async function PATCH(request) {
     });
   } catch (error) {
     console.error("Direct respond to visit error:", error);
+    return Response.json({ error: error.message }, { status: 400 });
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Hanya Administrator yang dapat menghapus data kunjungan tamu
+    if (!isAdministrator(session.user.role)) {
+      return Response.json(
+        { error: "Forbidden: Hanya Administrator yang berwenang menghapus riwayat kunjungan tamu" },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
+    const { visitId, visitIds } = body;
+
+    if (!visitId && (!visitIds || !Array.isArray(visitIds) || visitIds.length === 0)) {
+      return Response.json({ error: "visitId atau visitIds wajib diisi" }, { status: 400 });
+    }
+
+    if (visitIds && Array.isArray(visitIds) && visitIds.length > 0) {
+      const result = await prismaVisitRepository.deleteMany(visitIds);
+      return Response.json({
+        success: true,
+        count: result.count,
+        message: `${result.count} data kunjungan tamu berhasil dihapus`,
+      });
+    }
+
+    await prismaVisitRepository.delete(visitId);
+    return Response.json({ success: true, message: "Data kunjungan tamu berhasil dihapus" });
+  } catch (error) {
+    console.error("Delete visit error:", error);
     return Response.json({ error: error.message }, { status: 400 });
   }
 }

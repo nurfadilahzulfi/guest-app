@@ -5,16 +5,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { prisma } from "@/infrastructure/prisma/client";
 
-// Auto-koreksi runtime jika environment variable masih mengarah ke domain lama tanpa -alpha
-if (process.env.NEXTAUTH_URL && process.env.NEXTAUTH_URL.includes("guest-app.vercel.app") && !process.env.NEXTAUTH_URL.includes("-alpha")) {
-  process.env.NEXTAUTH_URL = "https://guest-app-alpha.vercel.app";
-}
-if (process.env.AUTH_URL && process.env.AUTH_URL.includes("guest-app.vercel.app") && !process.env.AUTH_URL.includes("-alpha")) {
-  process.env.AUTH_URL = "https://guest-app-alpha.vercel.app";
-}
-if (process.env.APP_URL && process.env.APP_URL.includes("guest-app.vercel.app") && !process.env.APP_URL.includes("-alpha")) {
-  process.env.APP_URL = "https://guest-app-alpha.vercel.app";
-}
+// Auto-koreksi runtime sudah tidak diperlukan — domain sudah di-update ke guest-oils-tanimas.vercel.app
 
 /**
  * Konfigurasi Auth.js (NextAuth v5).
@@ -155,7 +146,7 @@ export const authConfig = {
       }
       try {
         const parsed = new URL(url);
-        if (parsed.origin === baseUrl || parsed.hostname.includes("guest-app-alpha") || parsed.hostname === "localhost") {
+        if (parsed.origin === baseUrl || parsed.hostname.includes("guest-oils-tanimas") || parsed.hostname === "localhost") {
           return url;
         }
       } catch {}

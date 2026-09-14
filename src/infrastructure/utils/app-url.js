@@ -3,7 +3,7 @@
  * 
  * Prioritas:
  * 1. process.env.APP_URL (jika di-set eksplisit dan bukan localhost saat di production)
- * 2. process.env.VERCEL_PROJECT_PRODUCTION_URL (disediakan otomatis oleh Vercel, e.g. guest-app-alpha.vercel.app)
+ * 2. process.env.VERCEL_PROJECT_PRODUCTION_URL (disediakan otomatis oleh Vercel, e.g. guest-oils-tanimas.vercel.app)
  * 3. process.env.VERCEL_URL (URL deployment Vercel)
  * 4. Fallback: process.env.APP_URL lokal atau http://localhost:3000
  * 
@@ -12,11 +12,7 @@
 export function getBaseAppUrl() {
   let url = process.env.APP_URL;
   if (url && !url.includes("localhost")) {
-    url = url.replace(/\/$/, "");
-    if (url.includes("guest-app.vercel.app") && !url.includes("-alpha")) {
-      return "https://guest-app-alpha.vercel.app";
-    }
-    return url;
+    return url.replace(/\/$/, "");
   }
 
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {

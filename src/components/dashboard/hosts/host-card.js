@@ -27,6 +27,16 @@ export function HostCard({ host, onEdit, onToggleActive, onDelete }) {
               <h4 className="text-sm sm:text-base font-bold text-zinc-900 truncate">
                 {host.name}
               </h4>
+              {host.role === "ADMINISTRATOR" && (
+                <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md bg-zinc-900 text-white shrink-0">
+                  Administrator
+                </span>
+              )}
+              {host.role === "ADMIN_HRD" && (
+                <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                  Admin HRD
+                </span>
+              )}
               {host.isDepartmentHead ? (
                 <span className="inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
                   Kepala Departemen

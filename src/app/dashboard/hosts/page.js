@@ -54,17 +54,23 @@ export default function ManageHostsPage() {
   const fetchHosts = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/users?role=HOST");
+      // Ambil semua user (semua role) yang memiliki data departemen/jabatan
+      // agar administrator dan admin HRD yang berperan sebagai karyawan juga muncul
+      const res = await fetch("/api/users");
       if (res.ok) {
         const data = await res.json();
-        setHosts(Array.isArray(data) ? data : []);
+        // Ambil semua pengguna sistem (HOST, ADMINISTRATOR, ADMIN_HRD)
+        // Seluruh staf dan pimpinan akan tampil di direktori karyawan
+        const allEmployees = Array.isArray(data) ? data : [];
+        setHosts(allEmployees);
       }
     } catch (err) {
-      console.error("Gagal mengambil direktori host:", err);
+      console.error("Gagal mengambil direktori karyawan:", err);
     } finally {
       setLoading(false);
     }
   }, []);
+
 
   useEffect(() => { fetchHosts(); }, [fetchHosts]);
 

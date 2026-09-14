@@ -43,16 +43,16 @@ export function UserCard({
   return (
     <div className="p-4 sm:p-5 rounded-2xl border border-zinc-200/90 bg-white hover:border-zinc-300 hover:shadow-xs transition-all space-y-3">
       {/* Baris 1: Avatar, Identitas, Status Badges */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-100">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-11 h-11 rounded-2xl bg-zinc-900 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs">
+      <div className="flex items-start justify-between gap-2.5 pb-3 border-b border-zinc-100">
+        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-zinc-900 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs">
             {user.name?.[0]?.toUpperCase() ?? "U"}
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <h4 className="text-sm sm:text-base font-bold text-zinc-900 truncate">{user.name}</h4>
               <span
-                className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-md border shrink-0 ${
+                className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 ${
                   roleBadgeColor[user.role] || "bg-zinc-100 text-zinc-700"
                 }`}
               >
@@ -68,25 +68,26 @@ export function UserCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+        <div className="flex items-center gap-1.5 shrink-0 flex-wrap self-start">
           {user.hasPassword ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <IconCheck className="w-3.5 h-3.5" />
+            <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <IconCheck className="w-3 h-3 text-emerald-600" />
               <span>Teraktivasi</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+            <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
               <span>⏳ Belum Aktivasi</span>
             </span>
           )}
           <span
-            className={`inline-block text-[11px] font-bold px-2.5 py-1 rounded-lg border ${
+            className={`inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border ${
               user.isActive
                 ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                 : "bg-zinc-100 text-zinc-500 border-zinc-200"
             }`}
           >
-            {user.isActive ? "Akun Aktif" : "Nonaktif"}
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${user.isActive ? "bg-emerald-500" : "bg-zinc-400"}`} />
+            <span>{user.isActive ? "Akun Aktif" : "Nonaktif"}</span>
           </span>
         </div>
       </div>

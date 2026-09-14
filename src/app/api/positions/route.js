@@ -35,6 +35,29 @@ export async function POST(request) {
   }
 }
 
+export async function PATCH(request) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!isAdministrator(session.user.role)) {
+      return Response.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { oldName, newName } = await request.json();
+    if (!oldName || !newName || typeof oldName !== "string" || typeof newName !== "string") {
+      return Response.json({ error: "Nama lama dan nama baru jabatan wajib diisi" }, { status: 400 });
+    }
+
+    const list = await masterDataService.renamePosition(oldName, newName);
+    return Response.json(list);
+  } catch (error) {
+    console.error("Rename position error:", error);
+    return Response.json({ error: error.message }, { status: 400 });
+  }
+}
+
 export async function DELETE(request) {
   try {
     const session = await auth();

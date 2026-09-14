@@ -8,13 +8,15 @@ import {
   IconX,
   IconSpinner,
   IconCheck,
+  IconEdit,
 } from "@/components/icons/guest-icons";
+
 
 /**
  * Modal Kelola Master Data Departemen dan Jabatan.
- * Memungkinkan Administrator melihat, menambah, dan menghapus daftar departemen dan jabatan
- * agar data karyawan seragam dan bebas dari salah ketik (typo).
- * 
+ * Memungkinkan Administrator melihat, menambah, mengedit, dan menghapus
+ * daftar departemen dan jabatan agar data karyawan seragam.
+ *
  * @param {Object} props
  * @param {boolean} props.isOpen - Status visibilitas modal
  * @param {function(): void} props.onClose - Handler menutup modal
@@ -31,6 +33,10 @@ export function MasterDataModal({ isOpen, onClose, onUpdated }) {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  /** State untuk mode edit inline: { item: string, value: string } | null */
+  const [editingItem, setEditingItem] = useState(null);
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -54,6 +60,7 @@ export function MasterDataModal({ isOpen, onClose, onUpdated }) {
       setNewItemName("");
       setErrorMsg("");
       setSuccessMsg("");
+      setEditingItem(null);
     }
   }, [isOpen, fetchData]);
 
@@ -131,6 +138,61 @@ export function MasterDataModal({ isOpen, onClose, onUpdated }) {
     }
   };
 
+  const handleStartEdit = (item) => {
+    setEditingItem({ item, value: item });
+    setErrorMsg("");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingItem(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingItem) return;
+    const trimmedNew = editingItem.value.trim();
+    if (!trimmedNew) {
+      setErrorMsg("Nama tidak boleh kosong.");
+      return;
+    }
+    if (trimmedNew.toLowerCase() === editingItem.item.toLowerCase()) {
+      setEditingItem(null);
+      return;
+    }
+
+    setEditSubmitting(true);
+    setErrorMsg("");
+
+    const endpoint = activeTab === "departments" ? "/api/departments" : "/api/positions";
+    const labelType = activeTab === "departments" ? "Departemen" : "Jabatan";
+
+    try {
+      const res = await fetch(endpoint, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oldName: editingItem.item, newName: trimmedNew }),
+      });
+
+      const updated = await res.json();
+      if (!res.ok) throw new Error(updated.error || `Gagal mengedit ${labelType}.`);
+
+      if (activeTab === "departments") {
+        setDepartments(Array.isArray(updated) ? updated : departments.map((d) => d === editingItem.item ? trimmedNew : d));
+      } else {
+        setPositions(Array.isArray(updated) ? updated : positions.map((p) => p === editingItem.item ? trimmedNew : p));
+      }
+
+      setEditingItem(null);
+      setSuccessMsg(`${labelType} berhasil diubah menjadi "${trimmedNew}".`);
+      window.dispatchEvent(new Event("master-data-updated"));
+      onUpdated?.();
+      setTimeout(() => setSuccessMsg(""), 3000);
+    } catch (err) {
+      setErrorMsg(err.message);
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
   const currentList = activeTab === "departments" ? departments : positions;
   const currentTitle = activeTab === "departments" ? "Departemen" : "Jabatan";
 
@@ -162,6 +224,7 @@ export function MasterDataModal({ isOpen, onClose, onUpdated }) {
               setActiveTab("departments");
               setErrorMsg("");
               setSuccessMsg("");
+              setEditingItem(null);
             }}
             className={`py-2 rounded-lg transition-all cursor-pointer ${
               activeTab === "departments"
@@ -177,6 +240,7 @@ export function MasterDataModal({ isOpen, onClose, onUpdated }) {
               setActiveTab("positions");
               setErrorMsg("");
               setSuccessMsg("");
+              setEditingItem(null);
             }}
             className={`py-2 rounded-lg transition-all cursor-pointer ${
               activeTab === "positions"
@@ -242,17 +306,67 @@ export function MasterDataModal({ isOpen, onClose, onUpdated }) {
               currentList.map((item) => (
                 <div
                   key={item}
-                  className="flex items-center justify-between px-3.5 py-2.5 bg-white hover:bg-zinc-50/80 transition-colors"
+                  className="flex items-center gap-2 px-3.5 py-2.5 bg-white hover:bg-zinc-50/80 transition-colors"
                 >
-                  <span className="text-xs font-semibold text-zinc-800">{item}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(item)}
-                    className="p-1.5 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                    title={`Hapus ${item}`}
-                  >
-                    <IconTrash className="w-3.5 h-3.5" />
-                  </button>
+                  {editingItem?.item === item ? (
+                    /* Mode Edit Inline */
+                    <>
+                      <input
+                        type="text"
+                        autoFocus
+                        value={editingItem.value}
+                        onChange={(e) => setEditingItem({ ...editingItem, value: e.target.value })}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleSaveEdit();
+                          if (e.key === "Escape") handleCancelEdit();
+                        }}
+                        className="flex-1 rounded-lg border border-zinc-300 px-2.5 py-1.5 text-xs text-zinc-900 focus:outline-none focus:border-zinc-900"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSaveEdit}
+                        disabled={editSubmitting}
+                        className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer disabled:opacity-50"
+                        title="Simpan perubahan"
+                      >
+                        {editSubmitting ? (
+                          <IconSpinner className="w-3.5 h-3.5" />
+                        ) : (
+                          <IconCheck className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        disabled={editSubmitting}
+                        className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition-colors cursor-pointer"
+                        title="Batal"
+                      >
+                        <IconX className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  ) : (
+                    /* Mode Tampil Normal */
+                    <>
+                      <span className="flex-1 text-xs font-semibold text-zinc-800">{item}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleStartEdit(item)}
+                        className="p-1.5 rounded-lg text-zinc-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                        title={`Edit ${item}`}
+                      >
+                        <IconEdit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(item)}
+                        className="p-1.5 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                        title={`Hapus ${item}`}
+                      >
+                        <IconTrash className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  )}
                 </div>
               ))
             )}
@@ -273,3 +387,4 @@ export function MasterDataModal({ isOpen, onClose, onUpdated }) {
     </div>
   );
 }
+

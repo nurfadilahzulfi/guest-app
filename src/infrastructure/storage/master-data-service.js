@@ -62,6 +62,24 @@ export const masterDataService = {
     return data.departments;
   },
 
+  async renameDepartment(oldName, newName) {
+    const trimmedOld = oldName.trim();
+    const trimmedNew = newName.trim();
+    if (!trimmedNew) throw new Error("Nama departemen baru tidak boleh kosong");
+    const data = await this.getMasterData();
+    const index = data.departments.findIndex(
+      (d) => d.toLowerCase() === trimmedOld.toLowerCase()
+    );
+    if (index === -1) throw new Error("Departemen tidak ditemukan");
+    if (data.departments.some((d, i) => i !== index && d.toLowerCase() === trimmedNew.toLowerCase())) {
+      throw new Error("Nama departemen sudah ada");
+    }
+    data.departments[index] = trimmedNew;
+    data.departments.sort((a, b) => a.localeCompare(b));
+    await this.saveMasterData(data);
+    return data.departments;
+  },
+
   async getPositions() {
     const data = await this.getMasterData();
     return data.positions || [];
@@ -85,6 +103,24 @@ export const masterDataService = {
     data.positions = (data.positions || []).filter(
       (p) => p.toLowerCase() !== trimmed.toLowerCase()
     );
+    await this.saveMasterData(data);
+    return data.positions;
+  },
+
+  async renamePosition(oldName, newName) {
+    const trimmedOld = oldName.trim();
+    const trimmedNew = newName.trim();
+    if (!trimmedNew) throw new Error("Nama jabatan baru tidak boleh kosong");
+    const data = await this.getMasterData();
+    const index = data.positions.findIndex(
+      (p) => p.toLowerCase() === trimmedOld.toLowerCase()
+    );
+    if (index === -1) throw new Error("Jabatan tidak ditemukan");
+    if (data.positions.some((p, i) => i !== index && p.toLowerCase() === trimmedNew.toLowerCase())) {
+      throw new Error("Nama jabatan sudah ada");
+    }
+    data.positions[index] = trimmedNew;
+    data.positions.sort((a, b) => a.localeCompare(b));
     await this.saveMasterData(data);
     return data.positions;
   },

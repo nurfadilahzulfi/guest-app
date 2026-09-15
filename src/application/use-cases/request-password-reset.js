@@ -25,12 +25,12 @@ export async function requestPasswordReset({
   const normalizedEmail = email.trim().toLowerCase();
   const user = await userRepository.findByEmail(normalizedEmail);
 
-  // Fitur reset kata sandi mandiri via email HANYA diperuntukkan bagi Administrator.
-  // Untuk Host / Karyawan biasa dan Admin HRD, reset tetap dikelola terpusat oleh Administrator.
-  if (!user || !user.isActive || user.role !== "ADMINISTRATOR") {
+  // Pencegahan user enumeration: jika user tidak ada atau non-aktif,
+  // jangan lempar error yang membocorkan status akun.
+  if (!user || !user.isActive) {
     return {
       success: true,
-      message: "Jika email terdaftar sebagai Administrator, tautan pengaturan ulang kata sandi telah dikirim.",
+      message: "Jika email terdaftar pada sistem, tautan pengaturan ulang kata sandi telah dikirim.",
     };
   }
 
@@ -39,8 +39,10 @@ export async function requestPasswordReset({
     await tokenService.invalidateUserInviteTokens(user.id);
   }
 
-  // Buat token reset baru berlaku 1 jam
-  const resetToken = await tokenService.createInviteToken(user.id, 1);
+  // Buat token reset baru berlaku 10 menit
+  const resetToken = tokenService.createPasswordResetToken
+    ? await tokenService.createPasswordResetToken(user.id, 10)
+    : await tokenService.createInviteToken(user.id, 10 / 60);
   const baseUrl = appUrl || "";
   const resetUrl = `${baseUrl}/reset-password/${resetToken.token}`;
 

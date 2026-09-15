@@ -19,7 +19,7 @@ export async function getResetPasswordInfo({ token, tokenService, userRepository
   }
 
   const user = await userRepository.findById(tokenRecord.userId);
-  if (!user || !user.isActive || user.role !== "ADMINISTRATOR") {
+  if (!user || !user.isActive) {
     return null;
   }
 
@@ -63,8 +63,8 @@ export async function resetPassword({
     }
 
     const user = await userRepository.findById(tokenRecord.userId);
-    if (!user || !user.isActive || user.role !== "ADMINISTRATOR") {
-      throw new Error("Pengaturan ulang kata sandi mandiri hanya diperuntukkan bagi Administrator Sistem");
+    if (!user || !user.isActive) {
+      throw new Error("Pengguna tidak ditemukan atau sudah dinonaktifkan");
     }
 
     const passwordHash = await hashPassword(newPassword, 12);

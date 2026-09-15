@@ -134,15 +134,11 @@ export default function ResetPasswordPage({ params }) {
             className="text-xl sm:text-2xl font-extrabold text-zinc-900 tracking-tight leading-tight"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Reset Sandi Administrator
+            Atur Ulang Kata Sandi
           </h1>
           <p className="text-xs sm:text-sm text-zinc-500 mt-1 max-w-xs leading-relaxed">
             PT Tanimas Resources Internasional
           </p>
-          <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-purple-100 text-purple-800 border border-purple-200">
-            Khusus Akun Administrator
-          </span>
-
         </div>
 
         {/* ─── State 1: Sedang Memvalidasi Tautan ─── */}
@@ -173,7 +169,7 @@ export default function ResetPasswordPage({ params }) {
               <p className="font-semibold text-zinc-800">Kemungkinan penyebab:</p>
               <ul className="list-disc pl-4 space-y-0.5">
                 <li>Tautan sudah pernah digunakan sebelumnya.</li>
-                <li>Masa berlaku tautan (1 jam) telah berakhir.</li>
+                <li>Masa berlaku tautan (10 menit) telah berakhir.</li>
                 <li>Tautan salah atau tidak lengkap saat disalin.</li>
               </ul>
             </div>

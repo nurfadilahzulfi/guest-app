@@ -478,7 +478,7 @@ export const emailNotificationService = {
             </a>
           </div>
           <p style="color: #ef4444; font-size: 13px; font-weight: 500; text-align: center; margin-bottom: 8px;">
-            ⚠️ Tautan ini hanya berlaku selama 1 jam dan hanya dapat digunakan 1 kali.
+            ⚠️ Tautan ini hanya berlaku selama <strong>10 menit</strong> dan hanya dapat digunakan 1 kali.
           </p>
           <p style="color: #6b7280; font-size: 13px; text-align: center; margin-top: 0;">
             Jika Anda tidak pernah meminta pengaturan ulang ini, abaikan email ini. Kata sandi akun Anda akan tetap aman.

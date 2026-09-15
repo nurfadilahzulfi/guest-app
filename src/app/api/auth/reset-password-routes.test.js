@@ -38,6 +38,9 @@ describe("Forgot & Reset Password Route Handlers", () => {
         isActive: true,
       });
       vi.spyOn(cryptoTokenService, "invalidateUserInviteTokens").mockResolvedValue({});
+      vi.spyOn(cryptoTokenService, "createPasswordResetToken").mockResolvedValue({
+        token: "tok-reset-uuid",
+      });
       vi.spyOn(cryptoTokenService, "createInviteToken").mockResolvedValue({
         token: "tok-reset-uuid",
       });

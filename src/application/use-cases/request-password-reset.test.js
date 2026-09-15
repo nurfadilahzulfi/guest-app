@@ -12,6 +12,7 @@ describe("requestPasswordReset use case", () => {
     };
     mockTokenService = {
       createInviteToken: vi.fn(),
+      createPasswordResetToken: vi.fn(),
       invalidateUserInviteTokens: vi.fn(),
     };
     mockNotificationService = {
@@ -41,6 +42,7 @@ describe("requestPasswordReset use case", () => {
     });
 
     expect(result.success).toBe(true);
+    expect(mockTokenService.createPasswordResetToken).not.toHaveBeenCalled();
     expect(mockTokenService.createInviteToken).not.toHaveBeenCalled();
     expect(mockNotificationService.sendPasswordResetEmail).not.toHaveBeenCalled();
   });
@@ -61,32 +63,40 @@ describe("requestPasswordReset use case", () => {
     });
 
     expect(result.success).toBe(true);
+    expect(mockTokenService.createPasswordResetToken).not.toHaveBeenCalled();
     expect(mockTokenService.createInviteToken).not.toHaveBeenCalled();
     expect(mockNotificationService.sendPasswordResetEmail).not.toHaveBeenCalled();
   });
 
-  it("TIDAK BOLEH mengirim email jika user adalah karyawan biasa (HOST) atau ADMIN_HRD", async () => {
-    mockUserRepository.findByEmail.mockResolvedValue({
+  it("harus berhasil mengirim email reset untuk karyawan biasa (HOST)", async () => {
+    const mockHost = {
       id: "host-1",
-      email: "staf@tanimas.co.id",
+      name: "Budi Santoso",
+      email: "budi@tanimas.co.id",
       role: "HOST",
       isActive: true,
-    });
+    };
+    mockUserRepository.findByEmail.mockResolvedValue(mockHost);
+    mockTokenService.createPasswordResetToken.mockResolvedValue({ token: "reset-host-uuid" });
 
     const result = await requestPasswordReset({
-      email: "staf@tanimas.co.id",
+      email: "budi@tanimas.co.id",
       userRepository: mockUserRepository,
       tokenService: mockTokenService,
       notificationService: mockNotificationService,
+      appUrl: "https://guest-oils-tanimas.vercel.app",
     });
 
     expect(result.success).toBe(true);
-    // Token tidak boleh dibuat dan email tidak boleh dikirim untuk non-administrator
-    expect(mockTokenService.createInviteToken).not.toHaveBeenCalled();
-    expect(mockNotificationService.sendPasswordResetEmail).not.toHaveBeenCalled();
+    expect(mockTokenService.createPasswordResetToken).toHaveBeenCalledWith("host-1", 10);
+    expect(mockNotificationService.sendPasswordResetEmail).toHaveBeenCalledWith({
+      user: mockHost,
+      resetToken: { token: "reset-host-uuid" },
+      resetUrl: "https://guest-oils-tanimas.vercel.app/reset-password/reset-host-uuid",
+    });
   });
 
-  it("harus membuat token reset (1 jam), invalidate token lama, dan kirim email HANYA saat role ADMINISTRATOR aktif", async () => {
+  it("harus membuat token reset (10 menit), invalidate token lama, dan kirim email untuk ADMINISTRATOR", async () => {
     const mockUser = {
       id: "admin-1",
       name: "Administrator Sistem",
@@ -95,7 +105,7 @@ describe("requestPasswordReset use case", () => {
       isActive: true,
     };
     mockUserRepository.findByEmail.mockResolvedValue(mockUser);
-    mockTokenService.createInviteToken.mockResolvedValue({ token: "reset-uuid-123" });
+    mockTokenService.createPasswordResetToken.mockResolvedValue({ token: "reset-uuid-123" });
 
     const result = await requestPasswordReset({
       email: "Admin@Tanimas.co.id ", // Test case insensitive & trimming
@@ -107,7 +117,7 @@ describe("requestPasswordReset use case", () => {
 
     expect(mockUserRepository.findByEmail).toHaveBeenCalledWith("admin@tanimas.co.id");
     expect(mockTokenService.invalidateUserInviteTokens).toHaveBeenCalledWith("admin-1");
-    expect(mockTokenService.createInviteToken).toHaveBeenCalledWith("admin-1", 1);
+    expect(mockTokenService.createPasswordResetToken).toHaveBeenCalledWith("admin-1", 10);
     expect(mockNotificationService.sendPasswordResetEmail).toHaveBeenCalledWith({
       user: mockUser,
       resetToken: { token: "reset-uuid-123" },

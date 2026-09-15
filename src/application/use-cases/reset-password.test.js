@@ -43,13 +43,14 @@ describe("resetPassword and getResetPasswordInfo use case", () => {
       expect(res).toBeNull();
     });
 
-    it("harus return null jika user BUKAN ADMINISTRATOR (misal HOST)", async () => {
+    it("harus return data user jika token valid untuk role HOST (Karyawan)", async () => {
       mockTokenService.validateInviteToken.mockResolvedValue({ userId: "u-host" });
       mockUserRepository.findById.mockResolvedValue({
         id: "u-host",
         name: "Staf Biasa",
         email: "staf@tanimas.co.id",
         role: "HOST",
+        department: "Finance",
         isActive: true,
       });
 
@@ -58,7 +59,13 @@ describe("resetPassword and getResetPasswordInfo use case", () => {
         tokenService: mockTokenService,
         userRepository: mockUserRepository,
       });
-      expect(res).toBeNull();
+
+      expect(res).toEqual({
+        name: "Staf Biasa",
+        email: "staf@tanimas.co.id",
+        role: "HOST",
+        department: "Finance",
+      });
     });
 
     it("harus return data user jika token valid dan user aktif dengan role ADMINISTRATOR", async () => {
@@ -116,20 +123,28 @@ describe("resetPassword and getResetPasswordInfo use case", () => {
       ).rejects.toThrow("Tautan reset kata sandi tidak valid atau sudah kedaluwarsa");
     });
 
-    it("harus menolak jika user bukan role ADMINISTRATOR", async () => {
-      mockTokenService.validateInviteToken.mockResolvedValue({ id: "tok-1", userId: "u-host" });
+    it("harus berhasil mengupdate password untuk role HOST", async () => {
+      mockTokenService.validateInviteToken.mockResolvedValue({ id: "tok-host", userId: "u-host" });
       mockUserRepository.findById.mockResolvedValue({ id: "u-host", role: "HOST", isActive: true });
+      mockUserRepository.update.mockResolvedValue({ id: "u-host", email: "staf@tanimas.co.id" });
 
-      await expect(
-        resetPassword({
-          token: "tok-1",
-          newPassword: "passwordBaru123",
-          userRepository: mockUserRepository,
-          tokenService: mockTokenService,
-          hashPassword: mockHashPassword,
-          transaction: mockTransaction,
-        })
-      ).rejects.toThrow("Pengaturan ulang kata sandi mandiri hanya diperuntukkan bagi Administrator Sistem");
+      const updated = await resetPassword({
+        token: "tok-host",
+        newPassword: "passwordBaru123",
+        userRepository: mockUserRepository,
+        tokenService: mockTokenService,
+        hashPassword: mockHashPassword,
+        transaction: mockTransaction,
+      });
+
+      expect(mockHashPassword).toHaveBeenCalledWith("passwordBaru123", 12);
+      expect(mockUserRepository.update).toHaveBeenCalledWith(
+        "u-host",
+        { passwordHash: "hashed_secret_password" },
+        "mock-tx"
+      );
+      expect(mockTokenService.markInviteTokenAsUsed).toHaveBeenCalledWith("tok-host", "mock-tx");
+      expect(updated.id).toBe("u-host");
     });
 
     it("harus berhasil mengupdate password dan menandai token sebagai terpakai untuk role ADMINISTRATOR", async () => {

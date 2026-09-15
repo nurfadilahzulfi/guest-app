@@ -145,5 +145,28 @@ describe("Infrastructure: cryptoTokenService", () => {
         data: { usedAt: expect.any(Date) },
       });
     });
+
+    it("createPasswordResetToken harus membuat token dengan waktu kedaluwarsa 10 menit", async () => {
+      const createSpy = vi.spyOn(prisma.inviteToken, "create").mockResolvedValue({
+        id: "reset-1",
+        userId: "user-1",
+      });
+
+      await cryptoTokenService.createPasswordResetToken("user-1", 10);
+      const callData = createSpy.mock.calls[0][0].data;
+      expect(callData.userId).toBe("user-1");
+      const minutesDiff = (callData.expiresAt.getTime() - Date.now()) / (1000 * 60);
+      expect(minutesDiff).toBeCloseTo(10, 0);
+    });
+
+    it("invalidateUserInviteTokens harus menandai semua token aktif user sebagai terpakai", async () => {
+      const updateManySpy = vi.spyOn(prisma.inviteToken, "updateMany").mockResolvedValue({ count: 2 });
+
+      await cryptoTokenService.invalidateUserInviteTokens("user-1");
+      expect(updateManySpy).toHaveBeenCalledWith({
+        where: { userId: "user-1", usedAt: null },
+        data: { usedAt: expect.any(Date) },
+      });
+    });
   });
 });

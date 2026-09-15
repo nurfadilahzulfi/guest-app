@@ -279,10 +279,10 @@ function LoginForm() {
                   Tautan Telah Dikirim
                 </h3>
                 <p className="text-xs text-zinc-600 leading-relaxed">
-                  Jika email <strong>{forgotEmail}</strong> terdaftar sebagai <strong>Administrator Sistem</strong>, tautan untuk mengatur ulang kata sandi telah dikirim. Silakan periksa <strong>Kotak Masuk (Inbox)</strong> atau folder <strong>Spam</strong> email Anda.
+                  Jika email <strong>{forgotEmail}</strong> terdaftar pada sistem, tautan untuk mengatur ulang kata sandi telah dikirim. Silakan periksa <strong>Kotak Masuk (Inbox)</strong> atau folder <strong>Spam</strong> email Anda.
                 </p>
                 <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-800 text-left leading-relaxed">
-                  ⏳ Tautan ini hanya berlaku selama <strong>1 jam</strong> dan hanya dapat digunakan 1 kali.
+                  ⏳ Tautan ini hanya berlaku selama <strong>10 menit</strong> dan hanya dapat digunakan 1 kali.
                 </div>
                 <button
                   type="button"
@@ -303,7 +303,7 @@ function LoginForm() {
                       className="text-sm font-bold text-zinc-900"
                       style={{ fontFamily: "var(--font-display)" }}
                     >
-                      Reset Sandi Administrator
+                      Lupa Kata Sandi
                     </h3>
                   </div>
                   <button
@@ -316,12 +316,8 @@ function LoginForm() {
                 </div>
 
                 <form onSubmit={handleForgotSubmit} className="mt-4 space-y-3.5">
-                  <div className="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200/80 text-[11px] text-zinc-600 leading-relaxed">
-                    ℹ️ Layanan reset kata sandi via email ini <strong>khusus untuk Administrator Sistem</strong>. Untuk staf atau karyawan, pengaturan kata sandi dikelola secara terpusat oleh Administrator.
-                  </div>
-
                   <p className="text-xs text-zinc-600 leading-relaxed">
-                    Masukkan email Administrator Anda yang terdaftar pada Guest App:
+                    Masukkan alamat email Anda yang terdaftar pada Guest App. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi:
                   </p>
 
                   {forgotError && (

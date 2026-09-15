@@ -72,6 +72,22 @@ export const cryptoTokenService = {
   },
 
   /**
+   * Buat token reset kata sandi (default kedaluwarsa 10 menit).
+   * @param {string} userId
+   * @param {number} [expiresInMinutes=10] - Durasi berlaku token dalam menit
+   * @returns {Promise<Object>}
+   */
+  async createPasswordResetToken(userId, expiresInMinutes = 10) {
+    const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
+    return prisma.inviteToken.create({
+      data: {
+        userId,
+        expiresAt,
+      },
+    });
+  },
+
+  /**
    * Validasi InviteToken — cek belum dipakai dan belum kedaluwarsa.
    * @param {string} token
    * @param {Object} [tx] - Prisma transaction client (opsional)

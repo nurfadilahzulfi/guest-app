@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { createOwner, deactivateOwner } from "./manage-owner-list";
+import { createOwner, deactivateOwner, deleteOwner } from "./manage-owner-list";
 
 describe("Use Case: manage-owner-list", () => {
   describe("createOwner", () => {
@@ -81,6 +81,40 @@ describe("Use Case: manage-owner-list", () => {
           ownerRepository,
         })
       ).rejects.toThrow("Owner tidak ditemukan");
+    });
+  });
+
+  describe("deleteOwner (Hard delete)", () => {
+    it("harus menghapus owner secara permanen", async () => {
+      const ownerRepository = {
+        findById: vi.fn().mockResolvedValue({ id: "owner-1", name: "Owner Test" }),
+        deleteById: vi.fn().mockResolvedValue({ id: "owner-1", name: "Owner Test" }),
+      };
+
+      const result = await deleteOwner({
+        ownerId: "owner-1",
+        ownerRepository,
+      });
+
+      expect(ownerRepository.findById).toHaveBeenCalledWith("owner-1");
+      expect(ownerRepository.deleteById).toHaveBeenCalledWith("owner-1");
+      expect(result.id).toBe("owner-1");
+    });
+
+    it("harus melempar error jika owner tidak ditemukan saat akan dihapus", async () => {
+      const ownerRepository = {
+        findById: vi.fn().mockResolvedValue(null),
+        deleteById: vi.fn(),
+      };
+
+      await expect(
+        deleteOwner({
+          ownerId: "nonexistent",
+          ownerRepository,
+        })
+      ).rejects.toThrow("Owner tidak ditemukan");
+
+      expect(ownerRepository.deleteById).not.toHaveBeenCalled();
     });
   });
 });

@@ -195,11 +195,10 @@ function LoginForm() {
               if (error) setError("");
               if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: "" }));
             }}
-            className={`w-full rounded-xl border ${
-              fieldErrors.email
+            className={`w-full rounded-xl border ${fieldErrors.email
                 ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-red-500/20"
                 : "border-zinc-200 bg-zinc-50/50 focus:border-zinc-900 focus:ring-zinc-900"
-            } px-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:ring-1 transition-colors duration-150`}
+              } px-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:ring-1 transition-colors duration-150`}
           />
           {fieldErrors.email && (
             <p className="text-[11px] text-red-600 font-medium mt-1.5 flex items-center gap-1.5 animate-fadeIn">
@@ -228,11 +227,10 @@ function LoginForm() {
                 if (error) setError("");
                 if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: "" }));
               }}
-              className={`w-full rounded-xl border ${
-                fieldErrors.password
+              className={`w-full rounded-xl border ${fieldErrors.password
                   ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-red-500/20"
                   : "border-zinc-200 bg-zinc-50/50 focus:border-zinc-900 focus:ring-zinc-900"
-              } px-3.5 py-2.5 pr-11 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:ring-1 transition-colors duration-150`}
+                } px-3.5 py-2.5 pr-11 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:ring-1 transition-colors duration-150`}
             />
             <button
               type="button"
@@ -389,11 +387,10 @@ function LoginForm() {
                           if (forgotError) setForgotError("");
                         }}
                         placeholder="contoh: admin@tanimas.co.id"
-                        className={`w-full pl-9 pr-3 py-2 text-xs rounded-xl border ${
-                          forgotError
+                        className={`w-full pl-9 pr-3 py-2 text-xs rounded-xl border ${forgotError
                             ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-red-500/20"
                             : "border-zinc-200 focus:border-zinc-900 focus:ring-zinc-900/10"
-                        } focus:outline-none focus:ring-2 transition-colors`}
+                          } focus:outline-none focus:ring-2 transition-colors`}
                         autoFocus
                       />
                     </div>

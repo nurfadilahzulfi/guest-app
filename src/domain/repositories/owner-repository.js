@@ -7,6 +7,7 @@
  * @property {function(string): Promise<Object|null>} findById - Mencari owner berdasarkan ID
  * @property {function(string): Promise<Object|null>} findActiveByPhone - Mencari owner aktif berdasarkan nomor HP ternormalisasi
  * @property {function(string, Object): Promise<Object>} update - Update data owner
+ * @property {function(string): Promise<Object>} deleteById - Menghapus data owner permanen (hard delete)
  * @property {function(Object): Promise<Object[]>} findAll - List semua owner
  */
 

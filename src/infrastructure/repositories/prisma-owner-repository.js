@@ -50,6 +50,16 @@ export const prismaOwnerRepository = {
   },
 
   /**
+   * Menghapus owner secara permanen (hard delete).
+   * Aman dilakukan karena Owner tidak berelasi langsung ke tabel Visit.
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async deleteById(id) {
+    return prisma.owner.delete({ where: { id } });
+  },
+
+  /**
    * List semua owner.
    * @param {Object} filters
    * @returns {Promise<Object[]>}

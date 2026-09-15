@@ -125,6 +125,30 @@ export default function ManageOwnersPage() {
     }
   };
 
+  const handleDelete = async (owner) => {
+    const confirmMsg = `Hapus permanen data "${owner.name}" (${owner.phoneNumber})? Tindakan ini tidak dapat dibatalkan.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      const res = await fetch("/api/owners", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ownerId: owner.id }),
+      });
+
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error || "Gagal menghapus owner");
+      }
+
+      setSuccessMsg(`Data "${owner.name}" berhasil dihapus.`);
+      fetchOwners();
+      setTimeout(() => setSuccessMsg(""), 4000);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
     const d = new Date(dateStr);
@@ -249,19 +273,34 @@ export default function ManageOwnersPage() {
                     </td>
 
                     <td className="px-4 py-3 text-center whitespace-nowrap">
-                      {owner.isActive ? (
+                      <div className="flex items-center justify-center gap-2">
+                        {owner.isActive ? (
+                          <button
+                            type="button"
+                            onClick={() => handleDeactivate(owner)}
+                            className="px-2.5 py-1 text-xs font-semibold rounded-lg text-amber-600 border border-amber-200 hover:bg-amber-50 transition-colors cursor-pointer"
+                          >
+                            Nonaktifkan
+                          </button>
+                        ) : (
+                          <span className="text-[11px] text-zinc-400 italic">
+                            Sudah dinonaktifkan
+                          </span>
+                        )}
                         <button
                           type="button"
-                          onClick={() => handleDeactivate(owner)}
-                          className="px-2.5 py-1 text-xs font-semibold rounded-lg text-red-600 border border-red-200 hover:bg-red-50 transition-colors cursor-pointer"
+                          onClick={() => handleDelete(owner)}
+                          title="Hapus permanen"
+                          className="p-1.5 rounded-lg text-red-500 border border-red-200 hover:bg-red-50 transition-colors cursor-pointer"
                         >
-                          Nonaktifkan
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                            <path d="M10 11v6M14 11v6" />
+                            <path d="M9 6V4h6v2" />
+                          </svg>
                         </button>
-                      ) : (
-                        <span className="text-[11px] text-zinc-400 italic">
-                          Sudah dinonaktifkan
-                        </span>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))

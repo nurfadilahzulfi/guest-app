@@ -39,3 +39,21 @@ export async function deactivateOwner({ ownerId, ownerRepository }) {
 
   return ownerRepository.update(ownerId, { isActive: false });
 }
+
+/**
+ * Menghapus owner secara permanen (hard delete).
+ * Karena Owner tidak berelasi ke Visit, penghapusan permanen aman dilakukan.
+ * Biasanya digunakan untuk membersihkan data testing atau entri yang salah input.
+ * @param {Object} params
+ * @param {string} params.ownerId
+ * @param {import('@/domain/repositories/owner-repository').OwnerRepository} params.ownerRepository
+ * @returns {Promise<Object>} owner yang sudah dihapus
+ */
+export async function deleteOwner({ ownerId, ownerRepository }) {
+  const owner = await ownerRepository.findById(ownerId);
+  if (!owner) {
+    throw new Error("Owner tidak ditemukan");
+  }
+
+  return ownerRepository.deleteById(ownerId);
+}

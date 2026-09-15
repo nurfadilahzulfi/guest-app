@@ -6,7 +6,7 @@ vi.mock("@/infrastructure/auth/auth-options", () => ({
 
 import { auth } from "@/infrastructure/auth/auth-options";
 import { GET as getHosts, POST as postHosts, PATCH as patchHosts } from "./hosts/route";
-import { GET as getOwners, POST as postOwners, PATCH as patchOwners } from "./owners/route";
+import { GET as getOwners, POST as postOwners, PATCH as patchOwners, DELETE as deleteOwners } from "./owners/route";
 import { GET as getUsers, PATCH as patchUsers } from "./users/route";
 import { POST as postInvite } from "./users/invite/route";
 import { GET as getVisits, POST as postVisits, PATCH as patchVisits, DELETE as deleteVisits } from "./visits/route";
@@ -105,6 +105,49 @@ describe("API Route Handlers — Otorisasi Server-Side & Status Code (AGENTS.md 
       });
       const res = await patchOwners(req);
       expect(res.status).toBe(400);
+    });
+
+    it("DELETE /api/owners hanya boleh diakses ADMINISTRATOR (401 unauth, 403 non-admin)", async () => {
+      auth.mockResolvedValue(null);
+      const reqUnauth = new Request("http://localhost/api/owners", {
+        method: "DELETE",
+        body: JSON.stringify({ ownerId: "o1" }),
+      });
+      expect((await deleteOwners(reqUnauth)).status).toBe(401);
+
+      auth.mockResolvedValue({ user: { role: "HOST" } });
+      const reqForbidden = new Request("http://localhost/api/owners", {
+        method: "DELETE",
+        body: JSON.stringify({ ownerId: "o1" }),
+      });
+      expect((await deleteOwners(reqForbidden)).status).toBe(403);
+    });
+
+    it("DELETE /api/owners harus menolak 400 jika ownerId tidak ada", async () => {
+      auth.mockResolvedValue({ user: { role: "ADMINISTRATOR" } });
+
+      const req = new Request("http://localhost/api/owners", {
+        method: "DELETE",
+        body: JSON.stringify({}),
+      });
+      const res = await deleteOwners(req);
+      expect(res.status).toBe(400);
+    });
+
+    it("DELETE /api/owners berhasil menghapus owner jika data valid", async () => {
+      auth.mockResolvedValue({ user: { role: "ADMINISTRATOR" } });
+      vi.spyOn(prismaOwnerRepository, "findById").mockResolvedValue({ id: "o1", name: "Owner VIP" });
+      vi.spyOn(prismaOwnerRepository, "deleteById").mockResolvedValue({ id: "o1", name: "Owner VIP" });
+
+      const req = new Request("http://localhost/api/owners", {
+        method: "DELETE",
+        body: JSON.stringify({ ownerId: "o1" }),
+      });
+      const res = await deleteOwners(req);
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.success).toBe(true);
+      expect(data.deleted.id).toBe("o1");
     });
   });
 

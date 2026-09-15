@@ -436,6 +436,66 @@ export const emailNotificationService = {
   },
 
   /**
+   * Kirim email instruksi pengaturan ulang kata sandi (forgot password).
+   * @param {Object} params
+   * @param {Object} params.user - Objek user (name, email)
+   * @param {Object} params.resetToken - Objek token reset
+   * @param {string} params.resetUrl - URL lengkap tautan reset password (/reset-password/[token])
+   */
+  async sendPasswordResetEmail({ user, resetToken, resetUrl }) {
+    const appUrl = getBaseAppUrl();
+    const attachments = [];
+    const logoData = getLogoData(appUrl);
+    if (logoData.attachment) {
+      attachments.push(logoData.attachment);
+    }
+
+    const subject = "Atur Ulang Kata Sandi — Guest App PT Tanimas Resources";
+    const html = `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 20px;">
+        <div style="background-color: #18181b; background: linear-gradient(135deg, #09090b 0%, #27272a 100%); padding: 28px 24px; border-radius: 16px 16px 0 0; text-align: center;">
+          <div style="margin: 0 auto 12px auto; display: inline-block; background-color: #ffffff; padding: 8px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-align: center;">
+            <img
+              src="${logoData.src}"
+              alt="PT. Tanimas Resources Internasional"
+              width="48"
+              height="48"
+              style="width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto; border: 0;"
+            />
+          </div>
+          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. Tanimas Resources Internasional</h1>
+          <p style="color: #cbd5e1 !important; margin: 6px 0 0 0; font-size: 13px; text-align: center;">Pengaturan Ulang Kata Sandi</p>
+        </div>
+        <div style="background-color: #ffffff; padding: 36px 32px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 16px 16px;">
+          <h2 style="color: #1f2937; margin-top: 0; font-size: 18px;">Halo, ${user.name}!</h2>
+          <p style="color: #4b5563; font-size: 14px; line-height: 1.6;">
+            Kami menerima permintaan untuk mengatur ulang kata sandi akun Guest App Anda (<strong>${user.email}</strong>).
+            Klik tombol di bawah ini untuk membuat kata sandi baru:
+          </p>
+          <div style="margin: 28px 0; text-align: center;">
+            <a href="${resetUrl}" style="display: inline-block; padding: 14px 36px; background-color: #18181b; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px; letter-spacing: 0.2px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+              Atur Ulang Kata Sandi
+            </a>
+          </div>
+          <p style="color: #ef4444; font-size: 13px; font-weight: 500; text-align: center; margin-bottom: 8px;">
+            ⚠️ Tautan ini hanya berlaku selama 1 jam dan hanya dapat digunakan 1 kali.
+          </p>
+          <p style="color: #6b7280; font-size: 13px; text-align: center; margin-top: 0;">
+            Jika Anda tidak pernah meminta pengaturan ulang ini, abaikan email ini. Kata sandi akun Anda akan tetap aman.
+          </p>
+          <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 28px 0 20px 0;" />
+          <p style="color: #a1a1aa; font-size: 12px; margin: 0; text-align: center;">
+            Email ini dikirim secara otomatis oleh Guest App PT. Tanimas Resources Internasional.<br/>Jika tombol di atas tidak berfungsi, buka tautan berikut:<br/>
+            <a href="${resetUrl}" style="color: #71717a; word-break: break-all;">${resetUrl}</a>
+          </p>
+        </div>
+      </div>
+    `;
+
+    await this._sendEmail({ to: [user.email], subject, html, attachments });
+  },
+
+  /**
    * Kirim email notifikasi keputusan kunjungan ke tamu (approve/reject).
    * @param {Object} params
    * @param {Object} params.visit - Data kunjungan (guestName, guestEmail, purpose, visitorType, visitToken, etc.)

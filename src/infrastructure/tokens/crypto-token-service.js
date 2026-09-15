@@ -104,4 +104,19 @@ export const cryptoTokenService = {
       data: { usedAt: new Date() },
     });
   },
+
+  /**
+   * Menandai semua token invite aktif sebelumnya milik user sebagai terpakai.
+   * Digunakan saat reset password baru diminta agar token lama tidak bisa dipakai.
+   * @param {string} userId
+   * @param {Object} [tx]
+   * @returns {Promise<Object>}
+   */
+  async invalidateUserInviteTokens(userId, tx) {
+    const client = tx || prisma;
+    return client.inviteToken.updateMany({
+      where: { userId, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+  },
 };

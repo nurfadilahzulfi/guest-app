@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
-  IconSearch,
-  IconFilter,
   IconSpinner,
   IconCrown,
   IconUser,
@@ -12,8 +11,8 @@ import {
   IconClock,
   IconCheck,
   IconX,
-  IconTrash,
-  IconDownload,
+  IconChevronRight,
+  IconClipboard,
 } from "@/components/icons/guest-icons";
 import dynamic from "next/dynamic";
 import { StatsCard } from "./stats-card";
@@ -37,7 +36,10 @@ const DashboardCharts = dynamic(
 );
 
 /**
- * Tampilan utama Dashboard interaktif adaptif multi-role.
+ * Tampilan utama Dashboard (Pusat Ringkasan & Analitik).
+ * Menampilkan Hero banner adaptif, kartu metrik statistik, grafik analitik,
+ * dan pratinjau kunjungan terkini dengan tautan ke halaman riwayat lengkap.
+ * 
  * @param {Object} props
  * @param {Object} props.user - Objek sesi user login
  */
@@ -46,55 +48,30 @@ export function DashboardHomeView({ user }) {
   const isHRDorAdmin = user?.role === "ADMIN_HRD" || user?.role === "ADMINISTRATOR";
   const isAdmin = user?.role === "ADMINISTRATOR";
 
-  const [visits, setVisits] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
+  const [recentVisits, setRecentVisits] = useState([]);
   const [summaryStats, setSummaryStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingRecent, setLoadingRecent] = useState(true);
   const [selectedVisit, setSelectedVisit] = useState(null);
   const [quickResponding, setQuickResponding] = useState(null);
   const [feedbackToast, setFeedbackToast] = useState(null);
 
-  // State untuk fitur hapus data kunjungan (Khusus Administrator)
-  const [visitToDelete, setVisitToDelete] = useState(null);
-  const [selectedVisitIds, setSelectedVisitIds] = useState([]);
-  const [deletingVisit, setDeletingVisit] = useState(false);
-  const [deleteError, setDeleteError] = useState("");
-
-  // Filter state
-  const [statusFilter, setStatusFilter] = useState("");
-  const [visitorTypeFilter, setVisitorTypeFilter] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [page, setPage] = useState(1);
-  const limit = 25;
-
-  const fetchVisits = useCallback(async () => {
-    setLoading(true);
+  // Ambil 5 kunjungan terbaru untuk widget pratinjau cepat
+  const fetchRecentVisits = useCallback(async () => {
+    setLoadingRecent(true);
     try {
-      const params = new URLSearchParams();
-      params.set("page", page.toString());
-      params.set("limit", limit.toString());
-      if (statusFilter) params.set("status", statusFilter);
-      if (visitorTypeFilter) params.set("visitorType", visitorTypeFilter);
-      if (departmentFilter) params.set("department", departmentFilter);
-      if (dateFrom) params.set("dateFrom", dateFrom);
-      if (dateTo) params.set("dateTo", dateTo);
-
-      const res = await fetch(`/api/visits?${params.toString()}`);
+      const res = await fetch("/api/visits?page=1&limit=5");
       if (res.ok) {
         const json = await res.json();
-        setVisits(Array.isArray(json.data) ? json.data : []);
-        setTotalCount(typeof json.total === "number" ? json.total : 0);
+        setRecentVisits(Array.isArray(json.data) ? json.data : []);
       }
     } catch (err) {
-      console.error("Gagal mengambil data kunjungan:", err);
+      console.error("Gagal mengambil data kunjungan terkini:", err);
     } finally {
-      setLoading(false);
+      setLoadingRecent(false);
     }
-  }, [page, statusFilter, visitorTypeFilter, departmentFilter, dateFrom, dateTo]);
+  }, []);
 
+  // Ambil data ringkasan statistik DB
   const fetchStatsSummary = useCallback(async () => {
     try {
       const res = await fetch("/api/visits/stats");
@@ -110,11 +87,11 @@ export function DashboardHomeView({ user }) {
   }, []);
 
   useEffect(() => {
-    fetchVisits();
+    fetchRecentVisits();
     fetchStatsSummary();
-  }, [fetchVisits, fetchStatsSummary]);
+  }, [fetchRecentVisits, fetchStatsSummary]);
 
-  // Handler respon langsung oleh Host (Approve / Reject)
+  // Handler respon langsung oleh Host (Approve / Reject) dari pratinjau
   const handleDirectRespond = async (visitId, action, hostReply) => {
     const res = await fetch("/api/visits", {
       method: "PATCH",
@@ -152,32 +129,16 @@ export function DashboardHomeView({ user }) {
       );
     }
 
-    await Promise.all([fetchVisits(), fetchStatsSummary()]);
+    await Promise.all([fetchRecentVisits(), fetchStatsSummary()]);
     return data;
   };
 
-  // Nilai statistik akurat (agregat DB jika tersedia, fallback ke filter lokal)
-  const pendingCount =
-    summaryStats?.pending ?? visits.filter((v) => v.status === "PENDING").length;
-  const approvedCount =
-    summaryStats?.approved ?? visits.filter((v) => v.status === "APPROVED").length;
-  const rejectedCount =
-    summaryStats?.rejected ?? visits.filter((v) => v.status === "REJECTED").length;
-  const ownerCount =
-    summaryStats?.owner ?? visits.filter((v) => v.visitorType === "OWNER").length;
-  const displayTotalCount = summaryStats?.total ?? totalCount;
-
-  // Filter pencarian client-side berdasarkan nama / instansi
-  const filteredVisits = visits.filter((v) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      v.guestName?.toLowerCase().includes(q) ||
-      v.organization?.toLowerCase().includes(q) ||
-      v.purpose?.toLowerCase().includes(q) ||
-      v.host?.name?.toLowerCase().includes(q)
-    );
-  });
+  // Nilai metrik statistik akurat
+  const pendingCount = summaryStats?.pending ?? 0;
+  const approvedCount = summaryStats?.approved ?? 0;
+  const rejectedCount = summaryStats?.rejected ?? 0;
+  const ownerCount = summaryStats?.owner ?? 0;
+  const displayTotalCount = summaryStats?.total ?? 0;
 
   const statusBadge = {
     PENDING: "bg-amber-50 text-amber-700 border-amber-200",
@@ -200,132 +161,6 @@ export function DashboardHomeView({ user }) {
     }).format(d);
   };
 
-  // Handler eksekusi hapus kunjungan tamu (single / bulk)
-  const handleConfirmDelete = async () => {
-    if (!visitToDelete) return;
-    setDeletingVisit(true);
-    setDeleteError("");
-    try {
-      let bodyPayload = {};
-      if (visitToDelete.isBulk) {
-        bodyPayload = { visitIds: selectedVisitIds };
-      } else {
-        bodyPayload = { visitId: visitToDelete.id };
-      }
-
-      const res = await fetch("/api/visits", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bodyPayload),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Gagal menghapus data kunjungan.");
-      }
-
-      setFeedbackToast({
-        type: "success",
-        message: data.message || "Data kunjungan tamu berhasil dihapus.",
-      });
-      setTimeout(() => setFeedbackToast(null), 4000);
-
-      // Reset selection dan modal
-      setVisitToDelete(null);
-      setSelectedVisitIds([]);
-      if (
-        selectedVisit &&
-        (selectedVisit.id === visitToDelete.id ||
-          selectedVisitIds.includes(selectedVisit.id))
-      ) {
-        setSelectedVisit(null);
-      }
-
-      await Promise.all([fetchVisits(), fetchStatsSummary()]);
-    } catch (err) {
-      setDeleteError(err.message);
-    } finally {
-      setDeletingVisit(false);
-    }
-  };
-
-  const toggleSelectVisit = (id) => {
-    setSelectedVisitIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedVisitIds.length === filteredVisits.length) {
-      setSelectedVisitIds([]);
-    } else {
-      setSelectedVisitIds(filteredVisits.map((v) => v.id));
-    }
-  };
-
-  // Handler ekspor daftar kunjungan ke file CSV
-  const handleExportCSV = () => {
-    if (!filteredVisits || filteredVisits.length === 0) return;
-    const headers = [
-      "ID Kunjungan",
-      "Waktu Check-in",
-      "Nama Tamu",
-      "Jenis Kelamin",
-      "Nomor HP",
-      "Email Tamu",
-      "Asal Instansi",
-      "Karyawan yang Dituju",
-      "Departemen Host",
-      "Jabatan Host",
-      "Keperluan",
-      "Durasi",
-      "Kategori Tamu",
-      "Status Kunjungan",
-      "Catatan Host",
-      "Waktu Respon",
-    ];
-
-    const escapeCsv = (val) => {
-      if (val === null || val === undefined) return '""';
-      const str = String(val).replace(/"/g, '""');
-      return `"${str}"`;
-    };
-
-    const rows = filteredVisits.map((v) => [
-      escapeCsv(v.id),
-      escapeCsv(formatDate(v.createdAt)),
-      escapeCsv(v.guestName),
-      escapeCsv(v.gender || "—"),
-      escapeCsv(v.guestPhone),
-      escapeCsv(v.guestEmail || "—"),
-      escapeCsv(v.organization || "—"),
-      escapeCsv(v.host?.name || "—"),
-      escapeCsv(v.host?.department || "—"),
-      escapeCsv(v.host?.position || "—"),
-      escapeCsv(v.purpose),
-      escapeCsv(v.duration || "—"),
-      escapeCsv(v.visitorType),
-      escapeCsv(statusLabel[v.status] || v.status),
-      escapeCsv(v.hostReply || "—"),
-      escapeCsv(v.respondedAt ? formatDate(v.respondedAt) : "—"),
-    ]);
-
-    const csvContent =
-      "\uFEFF" + [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `rekap-kunjungan-tamu-${new Date().toISOString().slice(0, 10)}.csv`
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="space-y-6">
       {/* ─── Hero Banner Adaptif ────────────────────────────────────────── */}
@@ -343,7 +178,7 @@ export function DashboardHomeView({ user }) {
               Halo, {user?.name}! 👋
             </h1>
             <p className="text-xs sm:text-sm text-zinc-500 leading-relaxed">
-              Berikut adalah daftar janji temu dan kunjungan tamu yang ditujukan ke Anda. Anda dapat langsung menyetujui atau menolak kehadiran tamu secara praktis.
+              Berikut adalah ringkasan janji temu dan aktivitas kunjungan Anda hari ini. Anda dapat menyetujui kehadiran tamu atau membuka seluruh riwayat lengkap kapan saja.
             </p>
           </div>
 
@@ -372,7 +207,7 @@ export function DashboardHomeView({ user }) {
               Ringkasan Kunjungan Perusahaan
             </h1>
             <p className="text-xs sm:text-sm text-zinc-500 leading-relaxed">
-              Pantau seluruh aktivitas tamu di seluruh departemen dan staf PT. Tanimas Resources Internasional secara terpusat dan *real-time*.
+              Pantau tren dan aktivitas tamu di seluruh departemen PT. Tanimas Resources Internasional secara terpusat, akurat, dan *real-time*.
             </p>
           </div>
 
@@ -389,7 +224,7 @@ export function DashboardHomeView({ user }) {
         </div>
       )}
 
-      {/* ─── Kartu Statistik ───────────────────────────────────────────── */}
+      {/* ─── Kartu Statistik Metrik ────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
         <StatsCard
           title="Total Kunjungan"
@@ -414,7 +249,7 @@ export function DashboardHomeView({ user }) {
             title="Ditolak"
             value={rejectedCount}
             subtitle="Kunjungan dibatalkan"
-            icon={IconFilter}
+            icon={IconX}
           />
         ) : (
           <StatsCard
@@ -429,214 +264,64 @@ export function DashboardHomeView({ user }) {
       {/* ─── Analitik & Grafik (Adaptif Multi-Role) ───────────────────── */}
       <DashboardCharts user={user} />
 
-      {/* ─── Filter & Toolbar ─────────────────────────────────────────── */}
+      {/* ─── Widget Kunjungan Terkini & Pintasan Riwayat ───────────────── */}
       <div className="bg-white rounded-3xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2
-              className="text-base font-bold text-zinc-900"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              Riwayat Kunjungan Tamu
-            </h2>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              Menampilkan {filteredVisits.length} dari total {totalCount} kunjungan
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-zinc-100 text-zinc-700">
+                <IconClipboard className="w-4 h-4" />
+              </span>
+              <h2
+                className="text-base font-bold text-zinc-900"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                Kunjungan Terkini
+              </h2>
+            </div>
+            <p className="text-xs text-zinc-500 mt-1">
+              Menampilkan 5 aktivitas tamu terbaru di sistem.
             </p>
           </div>
 
-          {/* Search Input & Export CSV */}
-          <div className="flex items-center gap-2.5 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">
-                <IconSearch className="w-4 h-4" />
-              </div>
-              <input
-                type="text"
-                placeholder="Cari nama, instansi, host..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                suppressHydrationWarning
-                className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 pl-10 pr-4 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors"
-              />
-            </div>
-
-            {isHRDorAdmin && (
-              <button
-                type="button"
-                onClick={handleExportCSV}
-                title="Unduh data kunjungan tamu ke file CSV / Excel"
-                disabled={filteredVisits.length === 0}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-semibold transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
-              >
-                <IconDownload className="w-4 h-4 text-zinc-600" />
-                <span className="hidden sm:inline">Ekspor CSV</span>
-              </button>
-            )}
-          </div>
+          <Link
+            href="/dashboard/visits"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-semibold transition-all shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
+          >
+            <span>Buka Riwayat Lengkap</span>
+            <IconChevronRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
 
-        {/* Dropdown Filters */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-zinc-100 text-xs">
-          {/* Status */}
-          <div>
-            <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-              Status
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              suppressHydrationWarning
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-900"
-            >
-              <option value="">Semua Status</option>
-              <option value="PENDING">Menunggu Respon</option>
-              <option value="APPROVED">Disetujui</option>
-              <option value="REJECTED">Ditolak</option>
-            </select>
-          </div>
-
-          {/* Tipe Tamu (Hanya untuk Admin/HRD) */}
-          {isHRDorAdmin && (
-            <div>
-              <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-                Kategori Tamu
-              </label>
-              <select
-                value={visitorTypeFilter}
-                onChange={(e) => setVisitorTypeFilter(e.target.value)}
-                suppressHydrationWarning
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-900"
-              >
-                <option value="">Semua Kategori</option>
-                <option value="REGULAR">Tamu Biasa</option>
-                <option value="OWNER">Owner VIP</option>
-              </select>
-            </div>
-          )}
-
-          {/* Tanggal Dari */}
-          <div>
-            <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-              Dari Tanggal
-            </label>
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              suppressHydrationWarning
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-900"
-            />
-          </div>
-
-          {/* Tanggal Sampai */}
-          <div>
-            <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-              Sampai Tanggal
-            </label>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              suppressHydrationWarning
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-900"
-            />
-          </div>
-        </div>
-
-        {/* ─── Bulk Action Bar (Khusus Administrator) ─── */}
-        {isAdmin && filteredVisits.length > 0 && (
-          <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 text-xs">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={
-                  selectedVisitIds.length === filteredVisits.length &&
-                  filteredVisits.length > 0
-                }
-                onChange={toggleSelectAll}
-                className="w-4 h-4 rounded border-zinc-300 accent-zinc-900 cursor-pointer"
-              />
-              <span className="text-xs font-medium text-zinc-600">
-                Pilih Semua ({filteredVisits.length})
-              </span>
-            </label>
-
-            {selectedVisitIds.length > 0 && (
-              <div className="flex items-center gap-2 animate-fadeIn">
-                <span className="text-xs font-bold text-zinc-800">
-                  {selectedVisitIds.length} dipilih
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setVisitToDelete({
-                      isBulk: true,
-                      count: selectedVisitIds.length,
-                    })
-                  }
-                  className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                >
-                  <IconTrash className="w-3.5 h-3.5" />
-                  <span>Hapus Terpilih ({selectedVisitIds.length})</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedVisitIds([])}
-                  className="px-2.5 py-1.5 rounded-xl border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 text-xs font-medium transition-colors cursor-pointer"
-                >
-                  Batal
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ─── Daftar Kunjungan — Card Layout Responsif (Semua Ukuran Layar) ─── */}
-        <div className="space-y-3 sm:space-y-3.5">
-          {loading ? (
-            <div className="py-12 text-center text-zinc-400 bg-white rounded-2xl border border-zinc-200/90">
+        {/* List Card Kunjungan Terkini */}
+        <div className="space-y-3 pt-2">
+          {loadingRecent ? (
+            <div className="py-10 text-center text-zinc-400 bg-zinc-50/50 rounded-2xl border border-zinc-200/70">
               <div className="flex items-center justify-center gap-2">
                 <IconSpinner className="w-5 h-5 text-zinc-600 animate-spin" />
-                <span>Memuat data kunjungan...</span>
+                <span className="text-xs">Memuat kunjungan terbaru...</span>
               </div>
             </div>
-          ) : filteredVisits.length === 0 ? (
-            <div className="py-12 text-center text-zinc-400 bg-white rounded-2xl border border-zinc-200/90 px-4">
-              <div className="max-w-xs mx-auto space-y-3">
-                <div className="w-16 h-16 mx-auto relative opacity-70">
-                  <Image
-                    src="/assets/images/dashboard-meeting.png"
-                    alt="Empty State"
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                </div>
-                <p className="text-xs font-semibold text-zinc-600">Belum ada kunjungan yang ditemukan</p>
-                <p className="text-[11px] text-zinc-400">
-                  Data kunjungan tamu akan muncul di sini secara otomatis setelah tamu check-in.
-                </p>
-              </div>
+          ) : recentVisits.length === 0 ? (
+            <div className="py-10 text-center text-zinc-400 bg-zinc-50/50 rounded-2xl border border-zinc-200/70 px-4">
+              <p className="text-xs font-semibold text-zinc-600">
+                Belum ada aktivitas kunjungan terbaru.
+              </p>
+              <p className="text-[11px] text-zinc-400 mt-1">
+                Data akan tampil otomatis saat ada tamu yang check-in di pos security.
+              </p>
             </div>
           ) : (
-            filteredVisits.map((visit) => (
+            recentVisits.map((visit) => (
               <div
                 key={visit.id}
-                className="bg-white rounded-2xl border border-zinc-200/90 p-4 shadow-xs space-y-3 hover:border-zinc-300 transition-colors"
+                className="bg-zinc-50/60 rounded-2xl border border-zinc-200/80 p-4 space-y-3 hover:border-zinc-300 hover:bg-white transition-all shadow-2xs"
               >
-                {/* Header Kartu: Checkbox (Admin), Foto, Nama, Kategori & Status */}
+                {/* Header Kartu */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    {isAdmin && (
-                      <input
-                        type="checkbox"
-                        checked={selectedVisitIds.includes(visit.id)}
-                        onChange={() => toggleSelectVisit(visit.id)}
-                        className="w-4 h-4 rounded border-zinc-300 accent-zinc-900 cursor-pointer shrink-0"
-                      />
-                    )}
                     {visit.guestPhotoUrl ? (
-                      <div className="relative w-11 h-11 rounded-xl overflow-hidden shrink-0 border border-zinc-200 bg-zinc-100 shadow-2xs">
+                      <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-zinc-200 bg-zinc-100 shadow-2xs">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={visit.guestPhotoUrl}
@@ -645,8 +330,8 @@ export function DashboardHomeView({ user }) {
                         />
                       </div>
                     ) : (
-                      <div className="w-11 h-11 rounded-xl shrink-0 bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-400">
-                        <IconUser className="w-5 h-5" />
+                      <div className="w-10 h-10 rounded-xl shrink-0 bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-400">
+                        <IconUser className="w-4 h-4" />
                       </div>
                     )}
                     <div className="min-w-0">
@@ -677,7 +362,7 @@ export function DashboardHomeView({ user }) {
                 </div>
 
                 {/* Info Detail */}
-                <div className="space-y-1.5 pt-2 border-t border-zinc-100 text-xs">
+                <div className="space-y-1.5 pt-2 border-t border-zinc-200/60 text-xs">
                   {visit.organization && (
                     <div className="flex items-center gap-2 text-zinc-600">
                       <IconBuilding className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
@@ -704,67 +389,59 @@ export function DashboardHomeView({ user }) {
                   </div>
                 </div>
 
-                {/* Aksi Karyawan / Detail / Hapus */}
-                <div className="pt-2 border-t border-zinc-100 flex items-center gap-2">
+                {/* Aksi Cepat / Rincian */}
+                <div className="pt-2 border-t border-zinc-200/60 flex items-center gap-2">
                   {isHost && visit.status === "PENDING" ? (
                     <>
                       <button
                         type="button"
                         onClick={() => setQuickResponding({ visit, action: "APPROVED" })}
-                        className="flex-1 py-2 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-semibold transition-colors text-center cursor-pointer"
+                        className="flex-1 py-1.5 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-semibold transition-colors text-center cursor-pointer"
                       >
                         Setujui
                       </button>
                       <button
                         type="button"
                         onClick={() => setQuickResponding({ visit, action: "REJECTED" })}
-                        className="flex-1 py-2 rounded-xl border border-zinc-300 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-semibold transition-colors text-center cursor-pointer"
+                        className="flex-1 py-1.5 rounded-xl border border-zinc-300 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-semibold transition-colors text-center cursor-pointer"
                       >
                         Tolak
                       </button>
                       <button
                         type="button"
                         onClick={() => setSelectedVisit(visit)}
-                        className="px-3 py-2 rounded-xl bg-zinc-100 text-zinc-700 hover:bg-zinc-200 text-xs font-semibold transition-colors cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-100 text-xs font-semibold transition-colors cursor-pointer"
                       >
                         Detail
                       </button>
-                      {isAdmin && (
-                        <button
-                          type="button"
-                          onClick={() => setVisitToDelete(visit)}
-                          title="Hapus Kunjungan"
-                          className="p-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 transition-colors cursor-pointer shrink-0"
-                        >
-                          <IconTrash className="w-4 h-4" />
-                        </button>
-                      )}
                     </>
                   ) : (
-                    <div className="flex items-center gap-2 w-full">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedVisit(visit)}
-                        className="flex-1 py-2 rounded-xl bg-zinc-100 text-zinc-700 hover:bg-zinc-900 hover:text-white text-xs font-semibold transition-colors cursor-pointer text-center"
-                      >
-                        Lihat Rincian Lengkap
-                      </button>
-                      {isAdmin && (
-                        <button
-                          type="button"
-                          onClick={() => setVisitToDelete(visit)}
-                          title="Hapus Kunjungan"
-                          className="p-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 transition-colors cursor-pointer shrink-0"
-                        >
-                          <IconTrash className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedVisit(visit)}
+                      className="w-full py-1.5 rounded-xl bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-900 hover:text-white text-xs font-semibold transition-colors cursor-pointer text-center"
+                    >
+                      Lihat Rincian Tamu
+                    </button>
                   )}
                 </div>
               </div>
             ))
           )}
+        </div>
+
+        {/* Banner CTA Menuju Riwayat Lengkap */}
+        <div className="pt-3 mt-2 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <p className="text-zinc-500 text-center sm:text-left">
+            Butuh pencarian komprehensif, filter rentang tanggal, atau ekspor laporan Excel?
+          </p>
+          <Link
+            href="/dashboard/visits"
+            className="inline-flex items-center gap-1 font-semibold text-zinc-900 hover:text-zinc-700 underline underline-offset-4 cursor-pointer shrink-0"
+          >
+            <span>Buka Riwayat Kunjungan Selengkapnya</span>
+            <IconChevronRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </div>
 
@@ -776,7 +453,7 @@ export function DashboardHomeView({ user }) {
         isAdmin={isAdmin}
         currentUserId={user?.id}
         onRespond={handleDirectRespond}
-        onDelete={(visit) => setVisitToDelete(visit)}
+        onDelete={() => {}}
       />
 
       {/* ─── Modal Respon Cepat Host ───────────────────────────────────── */}
@@ -785,68 +462,6 @@ export function DashboardHomeView({ user }) {
         onClose={() => setQuickResponding(null)}
         onConfirm={handleDirectRespond}
       />
-
-      {/* ─── Modal Konfirmasi Hapus Kunjungan (Khusus Administrator) ─── */}
-      {visitToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl border border-zinc-200 max-w-sm w-full p-6 animate-scaleIn space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center">
-              <IconTrash className="w-6 h-6" />
-            </div>
-
-            <div>
-              <h3
-                className="text-base font-bold text-zinc-900"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                {visitToDelete.isBulk
-                  ? "Hapus Kunjungan Terpilih?"
-                  : "Hapus Data Kunjungan Tamu?"}
-              </h3>
-              <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
-                {visitToDelete.isBulk
-                  ? `Apakah Anda yakin ingin menghapus ${selectedVisitIds.length} data kunjungan tamu yang dipilih? Tindakan ini bersifat permanen dan tidak dapat dibatalkan.`
-                  : `Apakah Anda yakin ingin menghapus riwayat kunjungan dari "${visitToDelete.guestName}"? Tindakan ini bersifat permanen dan tidak dapat dibatalkan.`}
-              </p>
-            </div>
-
-            {deleteError && (
-              <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs">
-                ⚠️ {deleteError}
-              </div>
-            )}
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100">
-              <button
-                type="button"
-                disabled={deletingVisit}
-                onClick={() => {
-                  setVisitToDelete(null);
-                  setDeleteError("");
-                }}
-                className="px-4 py-2 rounded-xl border border-zinc-200 text-zinc-700 text-xs font-semibold hover:bg-zinc-50 transition-colors cursor-pointer disabled:opacity-50"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                disabled={deletingVisit}
-                onClick={handleConfirmDelete}
-                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-              >
-                {deletingVisit ? (
-                  <>
-                    <IconSpinner className="w-3.5 h-3.5 animate-spin" />
-                    <span>Menghapus...</span>
-                  </>
-                ) : (
-                  <span>Hapus Permanen</span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ─── Toast Notifikasi Feedback ─────────────────────────────────── */}
       {feedbackToast && (

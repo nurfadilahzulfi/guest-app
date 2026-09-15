@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
   IconLayoutDashboard,
+  IconClipboard,
   IconBuilding,
   IconCrown,
   IconUsersGroup,
@@ -31,6 +32,12 @@ export function Sidebar({ user, isOpen, onClose }) {
       href: "/dashboard",
       icon: IconLayoutDashboard,
       active: pathname === "/dashboard",
+    },
+    {
+      label: "Riwayat Kunjungan",
+      href: "/dashboard/visits",
+      icon: IconClipboard,
+      active: pathname.startsWith("/dashboard/visits"),
     },
     ...(isRoleAdmin
       ? [

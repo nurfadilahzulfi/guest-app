@@ -24,6 +24,7 @@ export default function ManageOwnersPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [formData, setFormData] = useState({
     name: "",
@@ -60,8 +61,23 @@ export default function ManageOwnersPage() {
 
   const handleCreateOwner = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
     setFormError("");
+
+    // Validasi inline — tidak menggunakan popup default browser
+    const errors = {};
+    if (!formData.name?.trim()) errors.name = "Nama owner wajib diisi.";
+    if (!formData.phoneNumber?.trim()) {
+      errors.phoneNumber = "Nomor HP wajib diisi.";
+    } else if (!/^[\d+][\d\s\-+]+$/.test(formData.phoneNumber.trim())) {
+      errors.phoneNumber = "Format nomor HP tidak valid.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
+    setSubmitting(true);
 
     try {
       const res = await fetch("/api/owners", {
@@ -284,19 +300,31 @@ export default function ManageOwnersPage() {
               </div>
             )}
 
-            <form onSubmit={handleCreateOwner} className="mt-4 space-y-3.5 text-xs">
+            <form noValidate onSubmit={handleCreateOwner} className="mt-4 space-y-3.5 text-xs">
               <div>
                 <label className="block font-semibold text-zinc-700 uppercase tracking-wider text-[10px] mb-1">
                   Nama Lengkap Owner *
                 </label>
                 <input
                   type="text"
-                  required
                   placeholder="Contoh: Bapak Tanoto"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-zinc-900 focus:outline-none focus:border-zinc-900"
+                  onChange={(e) => {
+                    setFormData({ ...formData, name: e.target.value });
+                    if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: "" }));
+                  }}
+                  className={`w-full rounded-xl border px-3.5 py-2 text-zinc-900 focus:outline-none transition-colors ${
+                    fieldErrors.name
+                      ? "border-red-400 bg-red-50 focus:border-red-500"
+                      : "border-zinc-200 focus:border-zinc-900"
+                  }`}
                 />
+                {fieldErrors.name && (
+                  <p className="mt-1 text-[10px] text-red-500 flex items-center gap-1">
+                    <span>⚠</span>
+                    <span>{fieldErrors.name}</span>
+                  </p>
+                )}
               </div>
 
               <div>
@@ -305,12 +333,24 @@ export default function ManageOwnersPage() {
                 </label>
                 <input
                   type="tel"
-                  required
                   placeholder="08123456789 atau +628123456789"
                   value={formData.phoneNumber}
-                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-zinc-900 focus:outline-none focus:border-zinc-900"
+                  onChange={(e) => {
+                    setFormData({ ...formData, phoneNumber: e.target.value });
+                    if (fieldErrors.phoneNumber) setFieldErrors((prev) => ({ ...prev, phoneNumber: "" }));
+                  }}
+                  className={`w-full rounded-xl border px-3.5 py-2 text-zinc-900 focus:outline-none transition-colors ${
+                    fieldErrors.phoneNumber
+                      ? "border-red-400 bg-red-50 focus:border-red-500"
+                      : "border-zinc-200 focus:border-zinc-900"
+                  }`}
                 />
+                {fieldErrors.phoneNumber && (
+                  <p className="mt-1 text-[10px] text-red-500 flex items-center gap-1">
+                    <span>⚠</span>
+                    <span>{fieldErrors.phoneNumber}</span>
+                  </p>
+                )}
                 <p className="text-[10px] text-zinc-400 mt-1">
                   *Nomor HP akan otomatis dinormalisasi ke format standar internasional E.164 (+628...).
                 </p>

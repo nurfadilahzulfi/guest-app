@@ -292,7 +292,7 @@ export default function InviteActivationPage({ params }) {
             )}
 
             {/* Form Input Password */}
-            <form onSubmit={handleActivate} className="space-y-4 text-xs">
+            <form noValidate onSubmit={handleActivate} className="space-y-4 text-xs">
               <div>
                 <label className="block font-semibold text-zinc-700 uppercase tracking-wider text-[10px] mb-1">
                   Buat Kata Sandi Baru *

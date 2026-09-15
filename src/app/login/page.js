@@ -27,6 +27,7 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [showForgotModal, setShowForgotModal] = useState(false);
 
   // State untuk modal Lupa Kata Sandi
@@ -44,8 +45,16 @@ function LoginForm() {
 
   const handleForgotSubmit = async (e) => {
     e.preventDefault();
-    if (!forgotEmail || !forgotEmail.includes("@")) {
-      setForgotError("Format alamat email tidak valid.");
+    const forgotEmailTrimmed = forgotEmail.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!forgotEmailTrimmed) {
+      setForgotError("Alamat email wajib diisi.");
+      return;
+    }
+
+    if (!emailRegex.test(forgotEmailTrimmed)) {
+      setForgotError("Format email tidak valid (contoh: admin@tanimas.co.id).");
       return;
     }
 
@@ -56,7 +65,7 @@ function LoginForm() {
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: forgotEmail.trim() }),
+        body: JSON.stringify({ email: forgotEmailTrimmed.toLowerCase() }),
       });
 
       const data = await res.json();
@@ -74,17 +83,34 @@ function LoginForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError("Email dan kata sandi wajib diisi.");
+
+    const emailTrimmed = email.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const errors = {};
+
+    if (!emailTrimmed) {
+      errors.email = "Alamat email wajib diisi.";
+    } else if (!emailRegex.test(emailTrimmed)) {
+      errors.email = "Format email tidak valid (contoh: nama@tanimas.co.id).";
+    }
+
+    if (!password) {
+      errors.password = "Kata sandi wajib diisi.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError("");
       return;
     }
 
+    setFieldErrors({});
     setLoading(true);
     setError("");
 
     try {
       const res = await signIn("credentials", {
-        email: email.trim().toLowerCase(),
+        email: emailTrimmed.toLowerCase(),
         password,
         redirect: false,
       });
@@ -141,7 +167,7 @@ function LoginForm() {
         </div>
       )}
 
-      {/* Alert Error */}
+      {/* Alert Error Global */}
       {error && (
         <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200/90 text-red-700 text-xs flex items-start gap-2.5 animate-fadeIn">
           <span className="font-semibold shrink-0">⚠️</span>
@@ -149,8 +175,8 @@ function LoginForm() {
         </div>
       )}
 
-      {/* Formulir */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Formulir — noValidate mencegah popup default browser yang kaku */}
+      <form noValidate onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
             htmlFor="email"
@@ -162,15 +188,25 @@ function LoginForm() {
             id="email"
             type="email"
             autoComplete="email"
-            required
             placeholder="nama@tanimas.co.id"
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
               if (error) setError("");
+              if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: "" }));
             }}
-            className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors duration-150"
+            className={`w-full rounded-xl border ${
+              fieldErrors.email
+                ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-red-500/20"
+                : "border-zinc-200 bg-zinc-50/50 focus:border-zinc-900 focus:ring-zinc-900"
+            } px-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:ring-1 transition-colors duration-150`}
           />
+          {fieldErrors.email && (
+            <p className="text-[11px] text-red-600 font-medium mt-1.5 flex items-center gap-1.5 animate-fadeIn">
+              <span className="shrink-0 text-xs">⚠️</span>
+              <span>{fieldErrors.email}</span>
+            </p>
+          )}
         </div>
 
         <div>
@@ -185,14 +221,18 @@ function LoginForm() {
               id="password"
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
-              required
               placeholder="••••••••"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
                 if (error) setError("");
+                if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: "" }));
               }}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-3.5 py-2.5 pr-11 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors duration-150"
+              className={`w-full rounded-xl border ${
+                fieldErrors.password
+                  ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-red-500/20"
+                  : "border-zinc-200 bg-zinc-50/50 focus:border-zinc-900 focus:ring-zinc-900"
+              } px-3.5 py-2.5 pr-11 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:ring-1 transition-colors duration-150`}
             />
             <button
               type="button"
@@ -208,6 +248,12 @@ function LoginForm() {
               )}
             </button>
           </div>
+          {fieldErrors.password && (
+            <p className="text-[11px] text-red-600 font-medium mt-1.5 flex items-center gap-1.5 animate-fadeIn">
+              <span className="shrink-0 text-xs">⚠️</span>
+              <span>{fieldErrors.password}</span>
+            </p>
+          )}
         </div>
 
         {/* Baris Opsi: Ingat Perangkat & Lupa Sandi */}
@@ -315,14 +361,15 @@ function LoginForm() {
                   </button>
                 </div>
 
-                <form onSubmit={handleForgotSubmit} className="mt-4 space-y-3.5">
+                <form noValidate onSubmit={handleForgotSubmit} className="mt-4 space-y-3.5">
                   <p className="text-xs text-zinc-600 leading-relaxed">
                     Masukkan alamat email Anda yang terdaftar pada Guest App. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi:
                   </p>
 
                   {forgotError && (
-                    <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-600 leading-relaxed">
-                      {forgotError}
+                    <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-600 leading-relaxed flex items-center gap-1.5 animate-fadeIn">
+                      <span className="shrink-0 text-xs">⚠️</span>
+                      <span>{forgotError}</span>
                     </div>
                   )}
 
@@ -336,11 +383,17 @@ function LoginForm() {
                       </div>
                       <input
                         type="email"
-                        required
                         value={forgotEmail}
-                        onChange={(e) => setForgotEmail(e.target.value)}
+                        onChange={(e) => {
+                          setForgotEmail(e.target.value);
+                          if (forgotError) setForgotError("");
+                        }}
                         placeholder="contoh: admin@tanimas.co.id"
-                        className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 transition-colors"
+                        className={`w-full pl-9 pr-3 py-2 text-xs rounded-xl border ${
+                          forgotError
+                            ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-red-500/20"
+                            : "border-zinc-200 focus:border-zinc-900 focus:ring-zinc-900/10"
+                        } focus:outline-none focus:ring-2 transition-colors`}
                         autoFocus
                       />
                     </div>

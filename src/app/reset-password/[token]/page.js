@@ -214,7 +214,7 @@ export default function ResetPasswordPage({ params }) {
 
         {/* ─── State 4: Form Input Kata Sandi Baru ─── */}
         {!loadingInfo && !fetchError && !resetSuccess && userInfo && (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form noValidate onSubmit={handleSubmit} className="space-y-4">
             {/* Kartu Profil Pengguna */}
             <div className="p-3 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-zinc-900 text-white flex items-center justify-center shrink-0">

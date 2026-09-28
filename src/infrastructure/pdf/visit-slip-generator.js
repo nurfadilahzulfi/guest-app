@@ -45,7 +45,7 @@ export async function generateVisitSlipPdf(visit) {
   doc.setFontSize(8);
   doc.setTextColor(212, 212, 216);
   doc.text("SISTEM MANAJEMEN BUKU TAMU DIGITAL — VISITOR PASS & EXIT CLEARANCE", margin, 18);
-  doc.text("Gedung Graha Tanimas, Kawasan Industri & Bisnis Terpadu", margin, 22);
+  doc.text("Jl. Surfaktan No.B21 - B22 KEK, Sei Mangkei, Kec. Bosar Maligas, Kab. Simalungun, Sumut 21183", margin, 22);
 
   // Judul Dokumen
   let y = 38;
@@ -59,11 +59,23 @@ export async function generateVisitSlipPdf(visit) {
   doc.setTextColor(100, 116, 139);
   doc.text("Tanda bukti sah kunjungan dan izin keluar area perkantoran", margin, y + 5);
 
-  // QR Code Verifikasi di pojok kanan atas
+  // QR Code Verifikasi aktif (URL halaman slip untuk scan kamera security)
   try {
-    const qrDataUrl = await QRCode.toDataURL(visit.visitToken || visit.id, {
+    let baseUrl = "";
+    if (typeof window !== "undefined" && window.location?.origin) {
+      baseUrl = window.location.origin;
+    } else if (process.env.NEXT_PUBLIC_APP_URL) {
+      baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+    } else if (process.env.APP_URL) {
+      baseUrl = process.env.APP_URL;
+    }
+    const verificationUrl = baseUrl
+      ? `${baseUrl}/visits/slip/${visit.visitToken || visit.id}`
+      : `https://guest-app.vercel.app/visits/slip/${visit.visitToken || visit.id}`;
+
+    const qrDataUrl = await QRCode.toDataURL(verificationUrl, {
       margin: 1,
-      width: 120,
+      width: 140,
       color: { dark: "#09090B", light: "#FFFFFF" },
     });
     doc.addImage(qrDataUrl, "PNG", pageWidth - margin - 26, y - 6, 26, 26);
@@ -120,11 +132,16 @@ export async function generateVisitSlipPdf(visit) {
   };
 
   // Section 1: Data Tamu
+  const vehicleText = visit.vehicleType
+    ? `${visit.vehicleType}${visit.licensePlate ? ` (Plat: ${visit.licensePlate})` : ""}`
+    : "—";
+
   drawSection("I. IDENTITAS PENGUNJUNG", [
     ["Nama Lengkap", visit.guestName],
     ["Nomor Telepon / WA", visit.guestPhone],
     ["Jenis Kelamin", visit.gender || "—"],
     ["Asal Instansi / Perusahaan", visit.organization || "Pribadi"],
+    ["Kendaraan / No. Plat", vehicleText],
     ["Kategori Tamu", visit.visitorType === "OWNER" ? "VIP / Owner" : "Tamu Reguler"],
   ]);
 
@@ -164,9 +181,16 @@ export async function generateVisitSlipPdf(visit) {
     margin,
     y + 4
   );
+  doc.setFont("helvetica", "bold");
+  doc.text(
+    "Aplikasi dibuat & dikelola oleh Departemen IT Tanimas Group.",
+    margin,
+    y + 8
+  );
 
+  doc.setFont("helvetica", "normal");
   const printTime = `Waktu cetak: ${formatDateTime(new Date())} | ID: ${visit.visitToken?.slice(0, 13) || visit.id}`;
-  doc.text(printTime, pageWidth - margin - doc.getTextWidth(printTime), y + 4);
+  doc.text(printTime, pageWidth - margin - doc.getTextWidth(printTime), y + 8);
 
   return doc;
 }

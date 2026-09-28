@@ -214,6 +214,15 @@ export function Sidebar({ user, isOpen, onClose }) {
             <IconLogOut className="w-4 h-4" />
             <span>Keluar Akun</span>
           </button>
+
+          <div className="pt-1 text-center space-y-0.5">
+            <p className="text-[10px] text-zinc-400">
+              © {new Date().getFullYear()} PT. Tanimas Resources Internasional
+            </p>
+            <p className="text-[9px] text-zinc-500 font-medium">
+              Aplikasi dibuat oleh Departemen IT Tanimas Group
+            </p>
+          </div>
         </div>
       </aside>
     </>

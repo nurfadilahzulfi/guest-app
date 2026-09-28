@@ -174,7 +174,9 @@ export function VisitsHistoryView({ user }) {
       v.organization?.toLowerCase().includes(q) ||
       v.purpose?.toLowerCase().includes(q) ||
       v.host?.name?.toLowerCase().includes(q) ||
-      v.host?.department?.toLowerCase().includes(q)
+      v.host?.department?.toLowerCase().includes(q) ||
+      v.vehicleType?.toLowerCase().includes(q) ||
+      v.licensePlate?.toLowerCase().includes(q)
     );
   });
 
@@ -273,6 +275,8 @@ export function VisitsHistoryView({ user }) {
       "Nomor HP",
       "Email Tamu",
       "Asal Instansi",
+      "Tipe Kendaraan",
+      "Nomor Plat",
       "Karyawan yang Dituju",
       "Departemen Host",
       "Jabatan Host",
@@ -301,6 +305,8 @@ export function VisitsHistoryView({ user }) {
       escapeCsv(v.guestPhone),
       escapeCsv(v.guestEmail || "—"),
       escapeCsv(v.organization || "—"),
+      escapeCsv(v.vehicleType || "—"),
+      escapeCsv(v.licensePlate || "—"),
       escapeCsv(v.host?.name || "—"),
       escapeCsv(v.host?.department || "—"),
       escapeCsv(v.host?.position || "—"),
@@ -719,6 +725,15 @@ export function VisitsHistoryView({ user }) {
                     <div className="flex items-center gap-2 text-zinc-600">
                       <IconBuilding className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                       <span className="truncate">{visit.organization}</span>
+                    </div>
+                  )}
+                  {visit.vehicleType && (
+                    <div className="flex items-center gap-1.5 text-zinc-600 text-[11px]">
+                      <span>🚗</span>
+                      <span className="font-medium text-zinc-700">
+                        {visit.vehicleType}
+                        {visit.licensePlate ? ` (${visit.licensePlate})` : ""}
+                      </span>
                     </div>
                   )}
                   <div className="flex items-start gap-2 text-zinc-700">

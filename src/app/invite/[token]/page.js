@@ -375,9 +375,10 @@ export default function InviteActivationPage({ params }) {
       </div>
 
       {/* Footer info */}
-      <p className="text-zinc-400 text-[11px] mt-6 relative z-10">
-        Guest Management System · PT. Tanimas Resources Internasional
-      </p>
+      <footer className="mt-6 text-center text-xs text-zinc-400 space-y-1 relative z-10">
+        <p>© {new Date().getFullYear()} PT. Tanimas Resources Internasional</p>
+        <p className="text-[11px] text-zinc-500 font-medium">Aplikasi dibuat oleh Departemen IT Tanimas Group</p>
+      </footer>
     </div>
   );
 }

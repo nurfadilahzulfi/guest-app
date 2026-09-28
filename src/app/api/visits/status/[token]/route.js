@@ -21,6 +21,8 @@ export async function GET(request, { params }) {
       gender: visit.gender,
       organization: visit.organization,
       duration: visit.duration,
+      vehicleType: visit.vehicleType,
+      licensePlate: visit.licensePlate,
       purpose: visit.purpose,
       visitorType: visit.visitorType,
       status: visit.status,

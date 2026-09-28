@@ -36,6 +36,11 @@ export function StepConfirm({ data, hosts }) {
       icon: IconTarget,
     },
     ...(data.duration ? [{ label: "Perkiraan Durasi", value: data.duration, icon: IconClock }] : []),
+    ...(data.vehicleType ? [{
+      label: "Kendaraan & Nomor Plat",
+      value: `${data.vehicleType}${data.licensePlate ? ` (Plat: ${data.licensePlate})` : ""}`,
+      icon: IconClipboard,
+    }] : []),
   ];
 
 

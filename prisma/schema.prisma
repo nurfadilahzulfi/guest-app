@@ -64,6 +64,8 @@ model Visit {
   gender       String?      // Laki-laki / Perempuan
   organization String?      // Asal instansi / perusahaan / pribadi
   duration     String?      // Perkiraan durasi bertemu (e.g. 30 Menit, 1 Jam)
+  vehicleType  String?      // Mobil, Sepeda Motor, Truk/Pickup, Jalan Kaki / Tanpa Kendaraan, Lainnya
+  licensePlate String?      // Nomor Plat Kendaraan (e.g. BK 1234 ABC)
   hostId       String
   host         User         @relation("HostVisits", fields: [hostId], references: [id])
   status       VisitStatus  @default(PENDING)

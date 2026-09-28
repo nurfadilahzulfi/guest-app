@@ -59,6 +59,8 @@ export async function checkInGuest({
     gender: input.gender?.trim() || null,
     organization: input.organization?.trim() || null,
     duration: input.duration?.trim() || null,
+    vehicleType: input.vehicleType?.trim() || null,
+    licensePlate: input.licensePlate?.trim() || null,
     hostId: input.hostId,
     status,
   });

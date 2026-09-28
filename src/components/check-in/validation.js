@@ -64,6 +64,16 @@ export function validateStep(step, data) {
     if (!data.duration) {
       errors.duration = "Pilih perkiraan durasi pertemuan.";
     }
+    if (!data.vehicleType) {
+      errors.vehicleType = "Pilih kendaraan yang Anda gunakan.";
+    }
+    if (
+      data.vehicleType &&
+      data.vehicleType !== "Jalan Kaki / Tanpa Kendaraan" &&
+      (!data.licensePlate || !data.licensePlate.trim())
+    ) {
+      errors.licensePlate = "Nomor plat kendaraan wajib diisi.";
+    }
   }
 
   return errors;

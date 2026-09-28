@@ -242,6 +242,15 @@ export default function RespondVisitPage({ params }) {
                     <strong className="text-zinc-900">Keperluan:</strong> {visit.purpose}
                   </span>
                 </div>
+                {visit.vehicleType && (
+                  <div className="flex items-center gap-2 text-zinc-600 text-[11px]">
+                    <span>🚗</span>
+                    <span>
+                      <strong className="text-zinc-900">Kendaraan:</strong> {visit.vehicleType}
+                      {visit.licensePlate ? ` (${visit.licensePlate})` : ""}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 text-zinc-500 text-[11px]">
                   <IconClock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                   <span>Waktu Check-In: {formatDate(visit.createdAt)}</span>
@@ -300,9 +309,10 @@ export default function RespondVisitPage({ params }) {
         )}
       </div>
 
-      <p className="text-zinc-400 text-[11px] mt-6 relative z-10">
-        Guest Management System · PT. Tanimas Resources Internasional
-      </p>
+      <footer className="mt-6 text-center text-xs text-zinc-400 space-y-1 relative z-10">
+        <p>© {new Date().getFullYear()} PT. Tanimas Resources Internasional</p>
+        <p className="text-[11px] text-zinc-500 font-medium">Aplikasi dibuat oleh Departemen IT Tanimas Group</p>
+      </footer>
     </div>
   );
 }

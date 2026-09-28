@@ -296,15 +296,20 @@ function LoginForm() {
         </button>
       </form>
 
-      {/* Navigasi Kembali ke Buku Tamu */}
-      <div className="mt-6 pt-4 border-t border-zinc-100 text-center">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 font-medium transition-colors"
-        >
-          <span>←</span>
-          <span>Bukan staf? Kembali ke Buku Tamu</span>
-        </Link>
+      {/* Navigasi Kembali ke Buku Tamu & Copyright */}
+      <div className="mt-6 pt-4 border-t border-zinc-100 text-center space-y-2">
+        <div>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 font-medium transition-colors"
+          >
+            <span>←</span>
+            <span>Bukan staf? Kembali ke Buku Tamu</span>
+          </Link>
+        </div>
+        <p className="text-[10px] text-zinc-400">
+          Aplikasi dibuat oleh Departemen IT Tanimas Group
+        </p>
       </div>
 
       {/* Modal Dialog Lupa Kata Sandi */}
@@ -461,6 +466,12 @@ export default function LoginPage() {
       >
         <LoginForm />
       </Suspense>
+
+      {/* Footer Copyright */}
+      <footer className="mt-6 text-center text-xs text-zinc-400 space-y-0.5 relative z-10">
+        <p>© {new Date().getFullYear()} PT. Tanimas Resources Internasional</p>
+        <p className="text-[11px] text-zinc-300 font-medium">Aplikasi dibuat oleh Departemen IT Tanimas Group</p>
+      </footer>
     </main>
   );
 }

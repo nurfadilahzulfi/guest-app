@@ -75,6 +75,8 @@ describe("Use Case: checkInGuest", () => {
       gender: null,
       organization: null,
       duration: null,
+      vehicleType: null,
+      licensePlate: null,
       hostId: "host-1",
       status: "PENDING",
     });

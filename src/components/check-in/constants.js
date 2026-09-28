@@ -63,3 +63,11 @@ export const DURATION_OPTIONS = [
   "Lebih dari 2 Jam",
 ];
 
+export const VEHICLE_OPTIONS = [
+  "Sepeda Motor",
+  "Mobil Pribadi / Dinas",
+  "Truk / Pick-up / Logistik",
+  "Jalan Kaki / Tanpa Kendaraan",
+  "Lainnya",
+];
+

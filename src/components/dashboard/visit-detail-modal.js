@@ -231,6 +231,19 @@ export function VisitDetailModal({
                     </div>
                   </div>
                 )}
+
+                {visit.vehicleType && (
+                  <div className="flex items-start gap-3 pt-2">
+                    <span className="w-4 h-4 text-center text-zinc-400 shrink-0 text-xs">🚗</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] text-zinc-400">Kendaraan / Plat Nomor</p>
+                      <p className="text-xs font-semibold text-zinc-800">
+                        {visit.vehicleType}
+                        {visit.licensePlate ? ` · ${visit.licensePlate}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

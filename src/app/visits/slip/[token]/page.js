@@ -150,7 +150,7 @@ export default function VisitSlipPage({ params }) {
                 Sistem Buku Tamu Digital · Exit Pass & Visitor Clearance
               </p>
               <p className="text-[10px] text-zinc-400">
-                Gedung Graha Tanimas, Kawasan Industri & Bisnis Terpadu
+                Jl. Surfaktan No.B21 - B22 KEK, Sei Mangkei, Kec. Bosar Maligas, Kabupaten Simalungun, Sumatera Utara 21183
               </p>
             </div>
           </div>
@@ -205,6 +205,12 @@ export default function VisitSlipPage({ params }) {
               <div>
                 <span className="text-zinc-500 block text-[11px]">Asal Instansi / Perusahaan:</span>
                 <span className="font-semibold text-zinc-800">{visit.organization || "Pribadi"}</span>
+              </div>
+              <div>
+                <span className="text-zinc-500 block text-[11px]">Kendaraan / No. Plat:</span>
+                <span className="font-semibold text-zinc-800">
+                  {visit.vehicleType ? `${visit.vehicleType}${visit.licensePlate ? ` (${visit.licensePlate})` : ""}` : "—"}
+                </span>
               </div>
               <div>
                 <span className="text-zinc-500 block text-[11px]">Kategori Tamu:</span>
@@ -264,9 +270,14 @@ export default function VisitSlipPage({ params }) {
 
         {/* Catatan & Penutup */}
         <div className="border-t border-zinc-200 pt-5 text-[11px] text-zinc-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <p className="max-w-md">
-            Dokumen ini diterbitkan secara otomatis dan sah oleh Guest App PT. Tanimas Resources Internasional sebagai izin kepulangan tamu.
-          </p>
+          <div>
+            <p className="max-w-md">
+              Dokumen ini diterbitkan secara otomatis dan sah oleh Guest App PT. Tanimas Resources Internasional sebagai izin kepulangan tamu.
+            </p>
+            <p className="font-semibold text-zinc-700 mt-1">
+              Aplikasi dibuat & dikelola oleh Departemen IT Tanimas Group.
+            </p>
+          </div>
           <div className="text-right shrink-0">
             <span className="block font-mono text-[10px] text-zinc-400">
               ID: {visit.visitToken?.slice(0, 13) || visit.id}

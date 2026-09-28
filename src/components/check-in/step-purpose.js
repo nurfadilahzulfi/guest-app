@@ -1,24 +1,21 @@
 import { IconTarget } from "@/components/icons/guest-icons";
-import { PURPOSE_OPTIONS, DURATION_OPTIONS } from "./constants";
+import { PURPOSE_OPTIONS, DURATION_OPTIONS, VEHICLE_OPTIONS } from "./constants";
 import { StepHeading } from "@/components/ui/step-heading";
 import { SelectableCard } from "@/components/ui/selectable-card";
 import { Field } from "@/components/ui/field";
 import { TextArea } from "@/components/ui/text-area";
+import { TextInput } from "@/components/ui/text-input";
 
 /**
- * Tahap 3: Pemilihan kategori tujuan kunjungan, keterangan tambahan, dan estimasi durasi.
- * @param {Object} props
- * @param {Object} props.data - State data formulir
- * @param {function(string, any): void} props.onChange - Handler perubahan nilai field
- * @param {Record<string, string>} props.errors - Objek error validasi field
+ * Tahap 3: Pemilihan kategori tujuan kunjungan, estimasi durasi, dan kendaraan.
  */
 export function StepPurpose({ data, onChange, errors }) {
   return (
     <div className="space-y-5">
       <StepHeading
         step="03"
-        title="Tujuan Kunjungan"
-        subtitle="Pilih satu kategori yang paling sesuai dengan kedatangan Anda."
+        title="Tujuan & Transportasi"
+        subtitle="Pilih kategori kedatangan, estimasi durasi, dan kendaraan yang digunakan."
       />
 
       {errors.purpose && <p className="text-xs text-red-500">{errors.purpose}</p>}
@@ -90,6 +87,50 @@ export function StepPurpose({ data, onChange, errors }) {
         </div>
         {errors.duration && <p className="text-xs text-red-500 mt-1">{errors.duration}</p>}
       </Field>
+
+      {/* Jenis & Nomor Plat Kendaraan */}
+      <Field label="Kendaraan yang Digunakan" id="vehicleType" required hint="Pilih sarana transportasi yang Anda bawa saat berkunjung.">
+        <div className="flex flex-wrap gap-2">
+          {VEHICLE_OPTIONS.map((veh) => {
+            const isSelected = data.vehicleType === veh;
+            return (
+              <button
+                key={veh}
+                type="button"
+                id={`vehicle-${veh.replace(/[\s/]+/g, "-").toLowerCase()}`}
+                onClick={() => {
+                  onChange("vehicleType", veh);
+                  if (veh === "Jalan Kaki / Tanpa Kendaraan") {
+                    onChange("licensePlate", "");
+                  }
+                }}
+                className={`
+                  py-2 px-3.5 rounded-xl text-xs sm:text-sm font-medium border transition-colors duration-150 cursor-pointer
+                  ${isSelected
+                    ? "border-[var(--tm-emerald-deep)] bg-[var(--tm-emerald-10)] text-[var(--tm-emerald-deep)] font-semibold"
+                    : "border-[var(--tm-line)] bg-white text-[var(--tm-forest)] hover:border-[var(--tm-emerald)]"}
+                `}
+              >
+                {veh}
+              </button>
+            );
+          })}
+        </div>
+        {errors.vehicleType && <p className="text-xs text-red-500 mt-1">{errors.vehicleType}</p>}
+      </Field>
+
+      {/* Input Nomor Plat Kendaraan jika bermotor */}
+      {data.vehicleType && data.vehicleType !== "Jalan Kaki / Tanpa Kendaraan" && (
+        <Field label="Nomor Plat Kendaraan" id="licensePlate" required hint="Contoh: BK 1234 ABC (Untuk verifikasi dan tracking pos security).">
+          <TextInput
+            id="licensePlate"
+            placeholder="Contoh: BK 1234 ABC"
+            value={data.licensePlate ?? ""}
+            onChange={(e) => onChange("licensePlate", e.target.value.toUpperCase())}
+          />
+          {errors.licensePlate && <p className="text-xs text-red-500 mt-1">{errors.licensePlate}</p>}
+        </Field>
+      )}
     </div>
   );
 }

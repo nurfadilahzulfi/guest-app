@@ -51,6 +51,8 @@ export default function CheckInPage() {
     gender: "",
     organization: "",
     duration: "",
+    vehicleType: "",
+    licensePlate: "",
     hostId: "",
     purpose: "",
     purposeNote: "",
@@ -331,6 +333,13 @@ export default function CheckInPage() {
               Data Anda digunakan semata-mata untuk keperluan pencatatan kunjungan resmi.
             </p>
           )}
+
+          <footer className="mt-8 pt-4 border-t border-[var(--tm-line)] text-center text-xs text-zinc-400 space-y-0.5">
+            <p>© {new Date().getFullYear()} PT. Tanimas Resources Internasional</p>
+            <p className="text-[11px] font-medium text-zinc-500">
+              Aplikasi dibuat oleh Departemen IT Tanimas Group
+            </p>
+          </footer>
         </div>
       </main>
 

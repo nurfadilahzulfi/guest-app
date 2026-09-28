@@ -83,11 +83,13 @@ export async function GET() {
     const dailyTrend = Object.values(dailyMap);
 
     // Distribusi status keseluruhan (semua waktu sesuai filter)
-    const [pendingCount, approvedCount, rejectedCount, totalCount] = await Promise.all([
+    const [pendingCount, approvedCount, rejectedCount, totalCount, inBuildingCount, checkedOutCount] = await Promise.all([
       prisma.visit.count({ where: { ...baseWhere, status: "PENDING" } }),
       prisma.visit.count({ where: { ...baseWhere, status: "APPROVED" } }),
       prisma.visit.count({ where: { ...baseWhere, status: "REJECTED" } }),
       prisma.visit.count({ where: baseWhere }),
+      prisma.visit.count({ where: { ...baseWhere, status: "APPROVED", checkoutAt: null } }),
+      prisma.visit.count({ where: { ...baseWhere, status: "APPROVED", checkoutAt: { not: null } } }),
     ]);
 
     // Distribusi tipe tamu (semua waktu sesuai filter)
@@ -173,6 +175,8 @@ export async function GET() {
         approved: approvedCount,
         rejected: rejectedCount,
         owner: ownerCount,
+        inBuilding: inBuildingCount,
+        checkedOut: checkedOutCount,
       },
     });
   } catch (error) {

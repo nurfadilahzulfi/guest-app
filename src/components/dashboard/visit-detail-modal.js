@@ -13,18 +13,12 @@ import {
   IconCrown,
   IconSpinner,
   IconTrash,
+  IconDownload,
 } from "@/components/icons/guest-icons";
+import { calculateVisitDuration } from "@/domain/entities/visit";
 
 /**
- * Modal dialog rincian lengkap satu kunjungan tamu dengan opsi respon langsung bagi Host.
- * @param {Object} props
- * @param {Object|null} props.visit - Objek data kunjungan yang dipilih
- * @param {function(): void} props.onClose - Handler menutup modal
- * @param {boolean} [props.isHost=false] - Apakah user yang membuka adalah Host
- * @param {boolean} [props.isAdmin=false] - Apakah user yang membuka adalah Administrator
- * @param {string|null} [props.currentUserId=null] - ID user yang sedang login
- * @param {function(string, string, string): Promise<any>} [props.onRespond] - Handler aksi respon host
- * @param {function(Object): void} [props.onDelete] - Handler aksi hapus kunjungan oleh admin
+ * Modal dialog rincian lengkap satu kunjungan tamu.
  */
 export function VisitDetailModal({
   visit,
@@ -34,10 +28,12 @@ export function VisitDetailModal({
   currentUserId = null,
   onRespond = null,
   onDelete = null,
+  onCheckout = null,
 }) {
   const [hostReply, setHostReply] = useState("");
   const [submittingAction, setSubmittingAction] = useState(null);
   const [actionError, setActionError] = useState("");
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   useEffect(() => {
     setHostReply("");
@@ -52,15 +48,20 @@ export function VisitDetailModal({
     visit.status === "PENDING" &&
     (!visit.hostId || visit.hostId === currentUserId);
 
+  const isCheckedOut = Boolean(visit.checkoutAt);
+  const durationText = calculateVisitDuration(visit.createdAt, visit.checkoutAt);
+
   const statusBadge = {
     PENDING: "bg-amber-50 text-amber-700 border-amber-200",
-    APPROVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    APPROVED: isCheckedOut
+      ? "bg-blue-50 text-blue-700 border-blue-200"
+      : "bg-emerald-50 text-emerald-700 border-emerald-200",
     REJECTED: "bg-red-50 text-red-700 border-red-200",
   };
 
   const statusLabel = {
     PENDING: "Menunggu Respon",
-    APPROVED: "Disetujui",
+    APPROVED: isCheckedOut ? "Selesai (Sudah Keluar)" : "Sedang di Gedung",
     REJECTED: "Ditolak",
   };
 
@@ -71,6 +72,18 @@ export function VisitDetailModal({
       dateStyle: "medium",
       timeStyle: "short",
     }).format(d);
+  };
+
+  const handleDownloadPdf = async () => {
+    setDownloadingPdf(true);
+    try {
+      const { downloadVisitSlipPdf } = await import("@/infrastructure/pdf/visit-slip-generator");
+      await downloadVisitSlipPdf(visit);
+    } catch (err) {
+      alert("Gagal mengunduh slip PDF: " + err.message);
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   return (
@@ -105,26 +118,43 @@ export function VisitDetailModal({
         {/* Isi Rincian */}
         <div className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
           {/* Status Bar */}
-          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80">
-            <div>
-              <p className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider">
-                Status Kunjungan
-              </p>
-              <span
-                className={`inline-block mt-1 text-xs font-bold px-2.5 py-1 rounded-lg border ${
-                  statusBadge[visit.status] || "bg-zinc-100 text-zinc-700"
-                }`}
-              >
-                {statusLabel[visit.status] || visit.status}
-              </span>
+          <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
+                  Status Kunjungan
+                </p>
+                <span
+                  className={`inline-block mt-0.5 text-xs font-bold px-2.5 py-0.5 rounded-lg border ${
+                    statusBadge[visit.status] || "bg-zinc-100 text-zinc-700"
+                  }`}
+                >
+                  {statusLabel[visit.status] || visit.status}
+                </span>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
+                  Waktu Check-in
+                </p>
+                <p className="text-xs text-zinc-800 font-medium mt-0.5">
+                  {formatDate(visit.createdAt)}
+                </p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider">
-                Waktu Check-in
-              </p>
-              <p className="text-xs text-zinc-700 font-medium mt-1">
-                {formatDate(visit.createdAt)}
-              </p>
+
+            <div className="pt-2 border-t border-zinc-200/60 flex items-center justify-between text-xs">
+              <div>
+                <span className="text-[11px] text-zinc-400">Waktu Check-out:</span>
+                <span className="font-semibold text-zinc-800 ml-1.5">
+                  {visit.checkoutAt ? formatDate(visit.checkoutAt) : "Belum check-out"}
+                </span>
+              </div>
+              {isCheckedOut && (
+                <div>
+                  <span className="text-[11px] text-zinc-400">Total Durasi:</span>
+                  <span className="font-bold text-emerald-700 ml-1.5">{durationText}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -178,7 +208,7 @@ export function VisitDetailModal({
                   <div className="flex items-start gap-3 pt-2">
                     <IconBuilding className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] text-zinc-400">Asal Instansi / Perusahaan / Organisasi</p>
+                      <p className="text-[11px] text-zinc-400">Asal Instansi / Perusahaan</p>
                       <p className="text-xs font-medium text-zinc-800">{visit.organization}</p>
                     </div>
                   </div>
@@ -187,8 +217,8 @@ export function VisitDetailModal({
                 <div className="flex items-start gap-3 pt-2">
                   <IconPhone className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] text-zinc-400">Nomor HP</p>
-                    <p className="text-xs font-mono text-zinc-800">{visit.guestPhone}</p>
+                    <p className="text-[11px] text-zinc-400">Nomor Telepon / WhatsApp</p>
+                    <p className="text-xs font-mono font-medium text-zinc-800">{visit.guestPhone}</p>
                   </div>
                 </div>
 
@@ -196,7 +226,7 @@ export function VisitDetailModal({
                   <div className="flex items-start gap-3 pt-2">
                     <IconMail className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] text-zinc-400">Email</p>
+                      <p className="text-[11px] text-zinc-400">Email Tamu</p>
                       <p className="text-xs text-zinc-800">{visit.guestEmail}</p>
                     </div>
                   </div>
@@ -298,7 +328,7 @@ export function VisitDetailModal({
         </div>
 
         {/* Footer Modal */}
-        <div className="px-6 py-3.5 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between gap-3">
+        <div className="px-6 py-3.5 bg-zinc-50 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -324,65 +354,98 @@ export function VisitDetailModal({
             )}
           </div>
 
-          {canRespond && (
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            {/* Tombol Check-Out Manual (jika kunjungan APPROVED dan belum checkout) */}
+            {visit.status === "APPROVED" && !isCheckedOut && onCheckout && (
               <button
                 type="button"
-                disabled={submittingAction !== null}
-                onClick={async () => {
-                  try {
-                    setActionError("");
-                    setSubmittingAction("REJECTED");
-                    if (onRespond) {
-                      await onRespond(visit.id, "REJECTED", hostReply);
-                    }
-                    onClose();
-                  } catch (err) {
-                    setActionError(err.message || "Gagal menolak kunjungan");
-                    setSubmittingAction(null);
-                  }
+                onClick={() => {
+                  onClose();
+                  onCheckout(visit);
                 }}
-                className="px-4 py-2 rounded-xl border border-zinc-300 bg-white hover:bg-zinc-100 text-zinc-800 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
               >
-                {submittingAction === "REJECTED" ? (
-                  <span className="flex items-center gap-1.5">
-                    <IconSpinner className="w-3.5 h-3.5 text-zinc-600" />
-                    <span>Menolak...</span>
-                  </span>
-                ) : (
-                  "Tolak Kunjungan"
-                )}
+                <span>🚪 Check-Out Tamu</span>
               </button>
+            )}
 
+            {/* Tombol Unduh Slip PDF (jika kunjungan sudah selesai checkout) */}
+            {isCheckedOut && (
               <button
                 type="button"
-                disabled={submittingAction !== null}
-                onClick={async () => {
-                  try {
-                    setActionError("");
-                    setSubmittingAction("APPROVED");
-                    if (onRespond) {
-                      await onRespond(visit.id, "APPROVED", hostReply);
-                    }
-                    onClose();
-                  } catch (err) {
-                    setActionError(err.message || "Gagal menyetujui kunjungan");
-                    setSubmittingAction(null);
-                  }
-                }}
-                className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                onClick={handleDownloadPdf}
+                disabled={downloadingPdf}
+                className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
               >
-                {submittingAction === "APPROVED" ? (
-                  <>
-                    <IconSpinner className="w-3.5 h-3.5 text-white" />
-                    <span>Menyetujui...</span>
-                  </>
+                {downloadingPdf ? (
+                  <IconSpinner className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  "Setujui Kunjungan"
+                  <IconDownload className="w-3.5 h-3.5" />
                 )}
+                <span>Unduh Slip PDF</span>
               </button>
-            </div>
-          )}
+            )}
+
+            {canRespond && (
+              <>
+                <button
+                  type="button"
+                  disabled={submittingAction !== null}
+                  onClick={async () => {
+                    try {
+                      setActionError("");
+                      setSubmittingAction("REJECTED");
+                      if (onRespond) {
+                        await onRespond(visit.id, "REJECTED", hostReply);
+                      }
+                      onClose();
+                    } catch (err) {
+                      setActionError(err.message || "Gagal menolak kunjungan");
+                      setSubmittingAction(null);
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl border border-zinc-300 bg-white hover:bg-zinc-100 text-zinc-800 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {submittingAction === "REJECTED" ? (
+                    <span className="flex items-center gap-1.5">
+                      <IconSpinner className="w-3.5 h-3.5 text-zinc-600" />
+                      <span>Menolak...</span>
+                    </span>
+                  ) : (
+                    "Tolak Kunjungan"
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={submittingAction !== null}
+                  onClick={async () => {
+                    try {
+                      setActionError("");
+                      setSubmittingAction("APPROVED");
+                      if (onRespond) {
+                        await onRespond(visit.id, "APPROVED", hostReply);
+                      }
+                      onClose();
+                    } catch (err) {
+                      setActionError(err.message || "Gagal menyetujui kunjungan");
+                      setSubmittingAction(null);
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {submittingAction === "APPROVED" ? (
+                    <>
+                      <IconSpinner className="w-3.5 h-3.5 text-white" />
+                      <span>Menyetujui...</span>
+                    </>
+                  ) : (
+                    "Setujui Kunjungan"
+                  )}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

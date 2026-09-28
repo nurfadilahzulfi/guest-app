@@ -66,14 +66,24 @@ Owner     Tamu Biasa
   ▼         ▼
 Otomatis  Notifikasi email
 Disetujui dikirim ke Host
-          │
-          ▼
-        Host Approve / Reject
-        lewat link di email
-          │
-          ▼
-       Tamu melihat
-       status kunjungan
+  │         │
+  │         ▼
+  │       Host Approve / Reject
+  │       lewat link di email
+  │         │
+  └────┬────┘
+       ▼
+Tamu masuk & beraktivitas (Sedang di Gedung)
+       │
+       ▼
+Selesai pertemuan ➔ Tamu klik "Check-Out"
+       │
+       ▼
+Sistem catat jam keluar & hitung durasi aktual
+       │
+       ▼
+Otomatis unduh Slip Kunjungan Digital (PDF Pass)
+(Tunjukkan ke Security saat keluar)
 ```
 
 ### Dua Jenis Tamu
@@ -123,7 +133,26 @@ Jika nomor HP tamu sudah terdaftar sebagai Owner, sistem akan **langsung menyetu
 
 ### 3.3 Halaman Status Kunjungan
 
-Setelah check-in, simpan atau bookmark URL halaman status. URL ini unik untuk setiap kunjungan dan dapat diakses kembali untuk melihat perkembangan status.
+Setelah check-in, simpan atau bookmark URL halaman status. Halaman ini akan secara otomatis memperbarui status tanpa perlu refresh manual.
+
+### 3.4 Check-Out Kunjungan & Unduh Slip PDF Pass
+
+Saat pertemuan telah usai dan tamu hendak meninggalkan gedung kantor:
+
+1. Di halaman status kunjungan yang telah **Disetujui**, klik tombol hijau **"Check-Out Sekarang"**.
+2. Konfirmasi dialog yang muncul.
+3. Jam keluar dicatat seketika oleh sistem, dan durasi aktual kunjungan dihitung.
+4. Sistem akan secara otomatis mengunduh **Slip Kunjungan Digital (PDF Pass)** ke smartphone tamu.
+5. Tamu dapat menunjukkan slip PDF atau QR pass di smartphone kepada petugas keamanan di pos keluar sebelum meninggalkan area gedung.
+
+### 3.5 Bagaimana Jika Tab Browser Tertutup? (Fitur Cerdas 1 QR)
+
+Jika tamu secara tidak sengaja menutup tab browser atau browser tertutup:
+
+1. Cukup **scan kembali QR Code** yang sama di pos security atau meja resepsionis.
+2. Sistem memiliki deteksi cerdas:
+   - **Auto-Detect**: Jika di perangkat yang sama, sistem langsung menampilkan banner *"Kunjungan Aktif Terdeteksi"* beserta tombol cepat untuk langsung membuka halaman kunjungan & check-out.
+   - **Cari dengan Nomor HP**: Jika cache browser terhapus, tamu cukup menekan tombol *"Cari Kunjungan Anda"*, memasukkan nomor HP yang didaftarkan saat check-in, dan sistem akan langsung mengarahkan ke halaman kunjungan aktif untuk check-out seketika.
 
 ---
 
@@ -208,12 +237,20 @@ Sama seperti Host — gunakan email dan kata sandi akun Admin HRD.
 | Rentang Tanggal | Pilih periode awal dan akhir |
 | Host | Filter berdasarkan nama karyawan |
 | Departemen | Filter berdasarkan departemen |
-| Status | Menunggu / Disetujui / Ditolak |
+| Status Respon | Menunggu / Disetujui / Ditolak |
+| Kehadiran Tamu | 🟢 Sedang di Gedung / 🏁 Sudah Check-Out |
 | Jenis Tamu | Tamu Biasa / Owner |
 
-> **Catatan**: Halaman ini bersifat **read-only**. Admin HRD tidak dapat mengubah status kunjungan.
+### 5.3 Pemantauan Keberadaan Tamu (Live Occupancy & K3)
 
-### 5.3 Notifikasi CC
+Pada dashboard utama dan riwayat kunjungan:
+- **Kartu Metrik "Sedang di Gedung"**: Memperlihatkan secara langsung berapa tamu yang saat ini masih berada di area gedung kantor dan belum melakukan check-out.
+- **Kartu Metrik "Sudah Check-Out"**: Total tamu yang kunjungannya telah selesai pada hari ini.
+- **Indikator Live**: Tamu yang berada di gedung ditandai dengan badge hijau berkedip (*pulsing green dot*).
+- **Check-Out Manual**: Host maupun Administrator dapat melakukan check-out atas nama tamu melalui tombol `🚪 Check-Out` pada kartu kunjungan atau di dalam modal rincian jika tamu lupa check-out saat pulang.
+- **Unduh Slip PDF**: Host, HRD, maupun Administrator dapat mengunduh ulang salinan Slip Kunjungan Digital (PDF) tamu kapan saja melalui tombol `Slip PDF`.
+
+### 5.4 Notifikasi CC
 
 Jika host yang dituju adalah seorang **Kepala Departemen (Department Head)**, sistem secara otomatis mengirimkan salinan (CC) email notifikasi ke seluruh akun Admin HRD dan Administrator sebagai informasi.
 

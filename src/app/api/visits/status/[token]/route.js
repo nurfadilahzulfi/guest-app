@@ -13,7 +13,10 @@ export async function GET(request, { params }) {
     }
 
     return Response.json({
+      id: visit.id,
+      visitToken: visit.visitToken,
       guestName: visit.guestName,
+      guestPhone: visit.guestPhone,
       guestPhotoUrl: visit.guestPhotoUrl,
       gender: visit.gender,
       organization: visit.organization,
@@ -23,10 +26,13 @@ export async function GET(request, { params }) {
       status: visit.status,
       hostName: visit.host.name,
       hostDepartment: visit.host.department,
+      hostPosition: visit.host.position,
       hostReply: visit.hostReply,
       guestEmail: visit.guestEmail,
       createdAt: visit.createdAt,
       respondedAt: visit.respondedAt,
+      checkoutAt: visit.checkoutAt,
+      checkoutBy: visit.checkoutBy,
     });
   } catch (error) {
     console.error("Status polling error:", error);

@@ -54,6 +54,7 @@ export async function GET(request) {
       visitorType: searchParams.get("visitorType") || undefined,
       hostId: searchParams.get("hostId") || undefined,
       department: searchParams.get("department") || undefined,
+      checkoutStatus: searchParams.get("checkoutStatus") || undefined,
       dateFrom: searchParams.get("dateFrom") || undefined,
       dateTo: searchParams.get("dateTo") || undefined,
     };

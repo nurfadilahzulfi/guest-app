@@ -139,6 +139,30 @@ export function DashboardHomeView({ user }) {
   const rejectedCount = summaryStats?.rejected ?? 0;
   const ownerCount = summaryStats?.owner ?? 0;
   const displayTotalCount = summaryStats?.total ?? 0;
+  const inBuildingCount = summaryStats?.inBuilding ?? 0;
+  const checkedOutCount = summaryStats?.checkedOut ?? 0;
+
+  const handleManualCheckout = async (visit) => {
+    if (!window.confirm(`Check-out tamu "${visit.guestName}" sekarang? Jam keluar akan dicatat saat ini.`)) return;
+    try {
+      const res = await fetch("/api/visits/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visitId: visit.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal melakukan check-out");
+      setFeedbackToast({
+        type: "success",
+        message: `Tamu "${visit.guestName}" berhasil di-checkout.`,
+      });
+      setTimeout(() => setFeedbackToast(null), 4000);
+      fetchRecentVisits();
+      fetchStatsSummary();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   const statusBadge = {
     PENDING: "bg-amber-50 text-amber-700 border-amber-200",
@@ -225,12 +249,18 @@ export function DashboardHomeView({ user }) {
       )}
 
       {/* ─── Kartu Statistik Metrik ────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <StatsCard
           title="Total Kunjungan"
           value={displayTotalCount}
           subtitle="Tercatat di sistem"
           icon={IconUser}
+        />
+        <StatsCard
+          title="Sedang di Gedung"
+          value={inBuildingCount}
+          subtitle="Tamu aktif saat ini"
+          icon={IconBuilding}
         />
         <StatsCard
           title="Menunggu Respon"
@@ -239,10 +269,10 @@ export function DashboardHomeView({ user }) {
           icon={IconClock}
         />
         <StatsCard
-          title="Disetujui"
-          value={approvedCount}
-          subtitle="Kunjungan aktif"
-          icon={IconBuilding}
+          title="Sudah Check-Out"
+          value={checkedOutCount}
+          subtitle="Kunjungan selesai"
+          icon={IconCheck}
         />
         {isHost ? (
           <StatsCard
@@ -454,6 +484,7 @@ export function DashboardHomeView({ user }) {
         currentUserId={user?.id}
         onRespond={handleDirectRespond}
         onDelete={() => {}}
+        onCheckout={handleManualCheckout}
       />
 
       {/* ─── Modal Respon Cepat Host ───────────────────────────────────── */}

@@ -103,6 +103,61 @@ export const prismaVisitRepository = {
   },
 
   /**
+   * Melakukan checkout kunjungan tamu.
+   * @param {string} id
+   * @param {{checkoutAt?: Date, checkoutBy?: string}} [options]
+   * @param {Object} [tx]
+   * @returns {Promise<Object>}
+   */
+  async checkout(id, { checkoutAt = new Date(), checkoutBy = "GUEST" } = {}, tx) {
+    const client = tx || prisma;
+    return client.visit.update({
+      where: { id },
+      data: {
+        checkoutAt,
+        checkoutBy,
+      },
+      include: {
+        host: {
+          select: {
+            id: true,
+            name: true,
+            department: true,
+            position: true,
+            email: true,
+          },
+        },
+      },
+    });
+  },
+
+  /**
+   * Mencari kunjungan aktif (APPROVED & belum checkout) berdasarkan nomor HP.
+   * @param {string} guestPhone
+   * @returns {Promise<Object|null>}
+   */
+  async findActiveByPhone(guestPhone) {
+    return prisma.visit.findFirst({
+      where: {
+        guestPhone,
+        status: "APPROVED",
+        checkoutAt: null,
+      },
+      include: {
+        host: {
+          select: {
+            id: true,
+            name: true,
+            department: true,
+            position: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  },
+
+  /**
    * List semua visit dengan filter & pagination.
    * @param {Object} filters
    * @returns {Promise<{data: Object[], total: number}>}
@@ -115,6 +170,7 @@ export const prismaVisitRepository = {
       visitorType,
       hostId,
       department,
+      checkoutStatus,
       dateFrom,
       dateTo,
     } = filters;
@@ -124,6 +180,12 @@ export const prismaVisitRepository = {
     if (visitorType) where.visitorType = visitorType;
     if (hostId) where.hostId = hostId;
     if (department) where.host = { department };
+    if (checkoutStatus === "active") {
+      where.status = "APPROVED";
+      where.checkoutAt = null;
+    } else if (checkoutStatus === "completed") {
+      where.checkoutAt = { not: null };
+    }
     if (dateFrom || dateTo) {
       where.createdAt = {};
       if (dateFrom) where.createdAt.gte = new Date(dateFrom);
@@ -161,10 +223,16 @@ export const prismaVisitRepository = {
    * @returns {Promise<{data: Object[], total: number}>}
    */
   async findByHostId(hostId, filters = {}) {
-    const { page = 1, limit = 20, status, dateFrom, dateTo } = filters;
+    const { page = 1, limit = 20, status, checkoutStatus, dateFrom, dateTo } = filters;
 
     const where = { hostId };
     if (status) where.status = status;
+    if (checkoutStatus === "active") {
+      where.status = "APPROVED";
+      where.checkoutAt = null;
+    } else if (checkoutStatus === "completed") {
+      where.checkoutAt = { not: null };
+    }
     if (dateFrom || dateTo) {
       where.createdAt = {};
       if (dateFrom) where.createdAt.gte = new Date(dateFrom);

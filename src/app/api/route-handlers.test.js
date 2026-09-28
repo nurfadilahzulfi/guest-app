@@ -13,6 +13,9 @@ import { GET as getVisits, POST as postVisits, PATCH as patchVisits, DELETE as d
 import { GET as getRespond, POST as postRespond } from "./visits/respond/[token]/route";
 import { GET as getStatus } from "./visits/status/[token]/route";
 import { GET as getPhoto } from "./visits/photo/[token]/route";
+import { POST as postCheckoutToken } from "./visits/checkout/[token]/route";
+import { POST as postCheckout } from "./visits/checkout/route";
+import { POST as postActiveSearch } from "./visits/active-search/route";
 import { GET as getInvite, POST as postInviteToken } from "./invite/[token]/route";
 
 import { prismaUserRepository } from "@/infrastructure/repositories/prisma-user-repository";
@@ -489,6 +492,133 @@ describe("API Route Handlers — Otorisasi Server-Side & Status Code (AGENTS.md 
         params: Promise.resolve({ token: "tok" }),
       });
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe("/api/visits/checkout/[token]", () => {
+    it("POST /api/visits/checkout/[token] harus 404 jika token tidak ditemukan", async () => {
+      vi.spyOn(prismaVisitRepository, "findByVisitToken").mockResolvedValue(null);
+      const res = await postCheckoutToken(new Request("http://localhost"), {
+        params: Promise.resolve({ token: "invalid-token" }),
+      });
+      expect(res.status).toBe(404);
+    });
+
+    it("POST /api/visits/checkout/[token] harus 400 jika kunjungan belum disetujui", async () => {
+      vi.spyOn(prismaVisitRepository, "findByVisitToken").mockResolvedValue({
+        id: "v1",
+        status: "PENDING",
+        checkoutAt: null,
+      });
+      const res = await postCheckoutToken(new Request("http://localhost"), {
+        params: Promise.resolve({ token: "tok" }),
+      });
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.error).toContain("belum disetujui");
+    });
+
+    it("POST /api/visits/checkout/[token] harus 200 dan mengembalikan data checkout", async () => {
+      vi.spyOn(prismaVisitRepository, "findByVisitToken").mockResolvedValue({
+        id: "v1",
+        status: "APPROVED",
+        checkoutAt: null,
+      });
+      vi.spyOn(prismaVisitRepository, "checkout").mockResolvedValue({
+        id: "v1",
+        guestName: "Budi",
+        checkoutAt: new Date("2026-09-28T12:00:00Z"),
+        checkoutBy: "GUEST",
+      });
+      const res = await postCheckoutToken(new Request("http://localhost"), {
+        params: Promise.resolve({ token: "tok" }),
+      });
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.success).toBe(true);
+    });
+  });
+
+  describe("/api/visits/checkout (Protected)", () => {
+    it("POST /api/visits/checkout harus 401 jika belum login", async () => {
+      auth.mockResolvedValue(null);
+      const req = new Request("http://localhost/api/visits/checkout", {
+        method: "POST",
+        body: JSON.stringify({ visitId: "v1" }),
+      });
+      const res = await postCheckout(req);
+      expect(res.status).toBe(401);
+    });
+
+    it("POST /api/visits/checkout harus 403 jika Host mencoba checkout kunjungan host lain", async () => {
+      auth.mockResolvedValue({ user: { id: "host-1", role: "HOST" } });
+      vi.spyOn(prismaVisitRepository, "findById").mockResolvedValue({
+        id: "v1",
+        hostId: "host-other",
+        status: "APPROVED",
+        checkoutAt: null,
+      });
+
+      const req = new Request("http://localhost/api/visits/checkout", {
+        method: "POST",
+        body: JSON.stringify({ visitId: "v1" }),
+      });
+      const res = await postCheckout(req);
+      expect(res.status).toBe(403);
+    });
+
+    it("POST /api/visits/checkout harus 200 jika Administrator melakukan checkout", async () => {
+      auth.mockResolvedValue({ user: { id: "admin-1", role: "ADMINISTRATOR" } });
+      vi.spyOn(prismaVisitRepository, "findById").mockResolvedValue({
+        id: "v1",
+        hostId: "host-other",
+        status: "APPROVED",
+        checkoutAt: null,
+      });
+      vi.spyOn(prismaVisitRepository, "checkout").mockResolvedValue({
+        id: "v1",
+        checkoutAt: new Date(),
+        checkoutBy: "ADMIN_admin-1",
+      });
+
+      const req = new Request("http://localhost/api/visits/checkout", {
+        method: "POST",
+        body: JSON.stringify({ visitId: "v1" }),
+      });
+      const res = await postCheckout(req);
+      expect(res.status).toBe(200);
+    });
+  });
+
+  describe("/api/visits/active-search", () => {
+    it("POST /api/visits/active-search harus 400 jika param phone tidak diberikan", async () => {
+      const req = new Request("http://localhost/api/visits/active-search", {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+      const res = await postActiveSearch(req);
+      expect(res.status).toBe(400);
+    });
+
+    it("POST /api/visits/active-search harus 200 dan found: true jika ada kunjungan aktif", async () => {
+      vi.spyOn(prismaVisitRepository, "findActiveByPhone").mockResolvedValue({
+        id: "v1",
+        visitToken: "active-token-123",
+        guestName: "Siti",
+        status: "APPROVED",
+        checkoutAt: null,
+        host: { name: "Host 1", department: "Finance" },
+      });
+
+      const req = new Request("http://localhost/api/visits/active-search", {
+        method: "POST",
+        body: JSON.stringify({ phone: "081234567890" }),
+      });
+      const res = await postActiveSearch(req);
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.found).toBe(true);
+      expect(json.visitToken).toBe("active-token-123");
     });
   });
 });

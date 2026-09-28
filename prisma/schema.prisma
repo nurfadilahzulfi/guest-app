@@ -70,6 +70,8 @@ model Visit {
   hostReply    String?
   createdAt    DateTime     @default(now())
   respondedAt  DateTime?
+  checkoutAt   DateTime?
+  checkoutBy   String?      // GUEST, ADMIN, HOST
 
   actionTokens HostActionToken[]
 }

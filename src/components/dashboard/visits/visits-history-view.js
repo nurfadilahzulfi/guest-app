@@ -17,17 +17,10 @@ import {
   IconChevronRight,
   IconClipboard,
 } from "@/components/icons/guest-icons";
+import { calculateVisitDuration } from "@/domain/entities/visit";
 import { VisitDetailModal } from "../visit-detail-modal";
 import { QuickRespondModal } from "../quick-respond-modal";
 
-/**
- * Tampilan halaman khusus Riwayat Kunjungan & Buku Tamu.
- * Mendukung pencarian, filter multi-dimensi, pagination, ekspor CSV,
- * aksi respon langsung oleh Host, serta penghapusan tunggal & massal oleh Administrator.
- * 
- * @param {Object} props
- * @param {Object} props.user - Objek sesi user login (id, name, email, role, department)
- */
 export function VisitsHistoryView({ user }) {
   const isHost = user?.role === "HOST";
   const isHRDorAdmin = user?.role === "ADMIN_HRD" || user?.role === "ADMINISTRATOR";
@@ -40,17 +33,17 @@ export function VisitsHistoryView({ user }) {
   const [quickResponding, setQuickResponding] = useState(null);
   const [feedbackToast, setFeedbackToast] = useState(null);
 
-  // State untuk penghapusan (Khusus Administrator)
+  // State hapus (Admin)
   const [visitToDelete, setVisitToDelete] = useState(null);
   const [selectedVisitIds, setSelectedVisitIds] = useState([]);
   const [deletingVisit, setDeletingVisit] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
-  // Daftar departemen untuk dropdown filter
   const [departments, setDepartments] = useState([]);
 
   // Filter state
   const [statusFilter, setStatusFilter] = useState("");
+  const [checkoutStatusFilter, setCheckoutStatusFilter] = useState("");
   const [visitorTypeFilter, setVisitorTypeFilter] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -84,6 +77,7 @@ export function VisitsHistoryView({ user }) {
       params.set("page", page.toString());
       params.set("limit", limit.toString());
       if (statusFilter) params.set("status", statusFilter);
+      if (checkoutStatusFilter) params.set("checkoutStatus", checkoutStatusFilter);
       if (visitorTypeFilter) params.set("visitorType", visitorTypeFilter);
       if (departmentFilter) params.set("department", departmentFilter);
       if (dateFrom) params.set("dateFrom", dateFrom);
@@ -100,7 +94,7 @@ export function VisitsHistoryView({ user }) {
     } finally {
       setLoading(false);
     }
-  }, [page, statusFilter, visitorTypeFilter, departmentFilter, dateFrom, dateTo]);
+  }, [page, statusFilter, checkoutStatusFilter, visitorTypeFilter, departmentFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchVisits();
@@ -146,6 +140,28 @@ export function VisitsHistoryView({ user }) {
 
     await fetchVisits();
     return data;
+  };
+
+  // Handler check-out manual oleh Host/Admin
+  const handleManualCheckout = async (visit) => {
+    if (!window.confirm(`Check-out tamu "${visit.guestName}" sekarang? Jam keluar akan dicatat saat ini.`)) return;
+    try {
+      const res = await fetch("/api/visits/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visitId: visit.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal melakukan check-out");
+      setFeedbackToast({
+        type: "success",
+        message: `Tamu "${visit.guestName}" berhasil di-checkout.`,
+      });
+      setTimeout(() => setFeedbackToast(null), 4000);
+      await fetchVisits();
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   // Filter pencarian client-side berdasarkan nama, instansi, keperluan, atau host
@@ -261,9 +277,12 @@ export function VisitsHistoryView({ user }) {
       "Departemen Host",
       "Jabatan Host",
       "Keperluan",
-      "Durasi",
+      "Durasi Estimasi",
       "Kategori Tamu",
       "Status Kunjungan",
+      "Status Kehadiran",
+      "Waktu Check-Out",
+      "Total Durasi Real",
       "Catatan Host",
       "Waktu Respon",
     ];
@@ -289,6 +308,9 @@ export function VisitsHistoryView({ user }) {
       escapeCsv(v.duration || "—"),
       escapeCsv(v.visitorType),
       escapeCsv(statusLabel[v.status] || v.status),
+      escapeCsv(v.checkoutAt ? "Sudah Check-Out" : (v.status === "APPROVED" ? "Sedang di Gedung" : "—")),
+      escapeCsv(v.checkoutAt ? formatDate(v.checkoutAt) : "—"),
+      escapeCsv(calculateVisitDuration(v.createdAt, v.checkoutAt)),
       escapeCsv(v.hostReply || "—"),
       escapeCsv(v.respondedAt ? formatDate(v.respondedAt) : "—"),
     ]);
@@ -312,6 +334,7 @@ export function VisitsHistoryView({ user }) {
   // Reset semua filter
   const handleResetFilter = () => {
     setStatusFilter("");
+    setCheckoutStatusFilter("");
     setVisitorTypeFilter("");
     setDepartmentFilter("");
     setDateFrom("");
@@ -321,7 +344,7 @@ export function VisitsHistoryView({ user }) {
   };
 
   const hasActiveFilters = Boolean(
-    statusFilter || visitorTypeFilter || departmentFilter || dateFrom || dateTo || searchQuery
+    statusFilter || checkoutStatusFilter || visitorTypeFilter || departmentFilter || dateFrom || dateTo || searchQuery
   );
 
   const totalPages = Math.max(1, Math.ceil(totalCount / limit));
@@ -410,11 +433,11 @@ export function VisitsHistoryView({ user }) {
         </div>
 
         {/* Dropdown Multi-Filter */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 pt-3 border-t border-zinc-100 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-3 border-t border-zinc-100 text-xs">
           {/* Filter Status */}
           <div>
             <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-              Status Kunjungan
+              Status Respon
             </label>
             <select
               value={statusFilter}
@@ -428,6 +451,25 @@ export function VisitsHistoryView({ user }) {
               <option value="PENDING">Menunggu Respon</option>
               <option value="APPROVED">Disetujui</option>
               <option value="REJECTED">Ditolak</option>
+            </select>
+          </div>
+
+          {/* Filter Kehadiran (Live K3) */}
+          <div>
+            <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
+              Kehadiran Tamu
+            </label>
+            <select
+              value={checkoutStatusFilter}
+              onChange={(e) => {
+                setCheckoutStatusFilter(e.target.value);
+                setPage(1);
+              }}
+              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-zinc-800 focus:outline-none focus:border-zinc-900 font-medium"
+            >
+              <option value="">Semua Kehadiran</option>
+              <option value="active">🟢 Sedang di Gedung</option>
+              <option value="completed">🏁 Sudah Check-Out</option>
             </select>
           </div>
 
@@ -646,13 +688,29 @@ export function VisitsHistoryView({ user }) {
                     </div>
                   </div>
 
-                  <span
-                    className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                      statusBadge[visit.status] || "bg-zinc-100 text-zinc-700"
-                    }`}
-                  >
-                    {statusLabel[visit.status] || visit.status}
-                  </span>
+                  {visit.status === "PENDING" && (
+                    <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-md border bg-amber-50 text-amber-700 border-amber-200">
+                      Menunggu Respon
+                    </span>
+                  )}
+                  {visit.status === "REJECTED" && (
+                    <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-md border bg-red-50 text-red-700 border-red-200">
+                      Ditolak
+                    </span>
+                  )}
+                  {visit.status === "APPROVED" && (
+                    visit.checkoutAt ? (
+                      <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md border bg-blue-50 text-blue-700 border-blue-200">
+                        <IconCheck className="w-3 h-3 text-blue-600" />
+                        Sudah Check-Out
+                      </span>
+                    ) : (
+                      <span className="shrink-0 inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md border bg-emerald-50 text-emerald-700 border-emerald-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Sedang di Gedung
+                      </span>
+                    )
+                  )}
                 </div>
 
                 {/* Info Detail */}
@@ -679,12 +737,18 @@ export function VisitsHistoryView({ user }) {
                   )}
                   <div className="flex items-center gap-2 text-[11px] text-zinc-400 pt-0.5">
                     <IconClock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                    <span>Check-in: {formatDate(visit.createdAt)}</span>
+                    <span>Masuk: {formatDate(visit.createdAt)}</span>
                   </div>
+                  {visit.checkoutAt && (
+                    <div className="flex items-center gap-2 text-[11px] text-blue-600 font-medium">
+                      <IconClock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                      <span>Keluar: {formatDate(visit.checkoutAt)} ({calculateVisitDuration(visit.createdAt, visit.checkoutAt)})</span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Aksi Host / Rincian / Hapus */}
-                <div className="pt-2 border-t border-zinc-100 flex items-center gap-2">
+                {/* Aksi Host / Rincian / Check-out / Hapus */}
+                <div className="pt-2 border-t border-zinc-100 flex items-center gap-2 flex-wrap sm:flex-nowrap">
                   {isHost && visit.status === "PENDING" ? (
                     <>
                       <button
@@ -720,7 +784,31 @@ export function VisitsHistoryView({ user }) {
                       )}
                     </>
                   ) : (
-                    <div className="flex items-center gap-2 w-full">
+                    <div className="flex items-center gap-2 w-full flex-wrap sm:flex-nowrap">
+                      {visit.status === "APPROVED" && !visit.checkoutAt && (
+                        <button
+                          type="button"
+                          onClick={() => handleManualCheckout(visit)}
+                          className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-2xs shrink-0"
+                          title="Check-Out Tamu Ini"
+                        >
+                          <span>🚪 Check-Out</span>
+                        </button>
+                      )}
+                      {visit.status === "APPROVED" && visit.checkoutAt && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const { downloadVisitSlipPdf } = await import("@/infrastructure/pdf/visit-slip-generator");
+                            await downloadVisitSlipPdf(visit);
+                          }}
+                          className="px-3 py-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-2xs shrink-0"
+                          title="Unduh Slip Kunjungan PDF"
+                        >
+                          <IconDownload className="w-3.5 h-3.5 text-zinc-600" />
+                          <span>Slip PDF</span>
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => setSelectedVisit(visit)}
@@ -787,6 +875,7 @@ export function VisitsHistoryView({ user }) {
         currentUserId={user?.id}
         onRespond={handleDirectRespond}
         onDelete={(visit) => setVisitToDelete(visit)}
+        onCheckout={handleManualCheckout}
       />
 
       {/* ─── Modal Respon Cepat Host ───────────────────────────────────── */}

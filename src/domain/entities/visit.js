@@ -74,3 +74,44 @@ export function validateVisitInput(input) {
 
   return { valid: errors.length === 0, errors };
 }
+
+/**
+ * Validasi apakah kunjungan memenuhi syarat untuk checkout.
+ * @param {Object} visit
+ * @returns {boolean}
+ */
+export function canCheckoutVisit(visit) {
+  if (!visit) return false;
+  return visit.status === "APPROVED" && !visit.checkoutAt;
+}
+
+/**
+ * Cek apakah kunjungan masih aktif di dalam gedung.
+ * @param {Object} visit
+ * @returns {boolean}
+ */
+export function isVisitActive(visit) {
+  return canCheckoutVisit(visit);
+}
+
+/**
+ * Menghitung selisih durasi antara check-in dan check-out.
+ * @param {string|Date} createdAt
+ * @param {string|Date} checkoutAt
+ * @returns {string} Durasi dalam format teks (e.g. "1 Jam 15 Menit")
+ */
+export function calculateVisitDuration(createdAt, checkoutAt) {
+  if (!createdAt || !checkoutAt) return "—";
+  const start = new Date(createdAt);
+  const end = new Date(checkoutAt);
+  const diffMs = end.getTime() - start.getTime();
+  if (diffMs <= 0) return "< 1 Menit";
+
+  const totalMinutes = Math.floor(diffMs / (1000 * 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours > 0 && minutes > 0) return `${hours} Jam ${minutes} Menit`;
+  if (hours > 0) return `${hours} Jam`;
+  return `${minutes} Menit`;
+}

@@ -7,6 +7,8 @@
  * @property {function(string): Promise<Object|null>} findByVisitToken - Mencari visit berdasarkan visitToken (public-facing)
  * @property {function(string): Promise<Object|null>} findById - Mencari visit berdasarkan ID internal
  * @property {function(string, Object): Promise<Object>} updateStatus - Update status visit (APPROVED/REJECTED)
+ * @property {function(string, {checkoutAt: Date, checkoutBy?: string}): Promise<Object>} checkout - Melakukan checkout kunjungan
+ * @property {function(string): Promise<Object|null>} findActiveByPhone - Mencari kunjungan aktif berdasarkan nomor HP
  * @property {function(Object): Promise<{data: Object[], total: number}>} findAll - List semua visit dengan filter & pagination
  * @property {function(string, Object): Promise<{data: Object[], total: number}>} findByHostId - List visit milik host tertentu
  * @property {function(string): Promise<Object>} delete - Menghapus satu kunjungan tamu beserta token terkait

@@ -328,6 +328,12 @@ export default function CheckInPage() {
             )}
           </div>
 
+          {!visitToken && (
+            <p className="text-center text-xs text-[var(--tm-muted)] mt-5">
+              Data Anda digunakan semata-mata untuk keperluan pencatatan kunjungan resmi.
+            </p>
+          )}
+
           <footer className="mt-8 pt-4 border-t border-[var(--tm-line)] text-center text-xs text-zinc-400 space-y-0.5">
             <p>© {new Date().getFullYear()} PT. Tanimas Resources Internasional</p>
             <p className="text-[11px] font-medium text-zinc-500">

@@ -296,20 +296,15 @@ function LoginForm() {
         </button>
       </form>
 
-      {/* Navigasi Kembali ke Buku Tamu & Copyright */}
-      <div className="mt-6 pt-4 border-t border-zinc-100 text-center space-y-2">
-        <div>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 font-medium transition-colors"
-          >
-            <span>←</span>
-            <span>Bukan staf? Kembali ke Buku Tamu</span>
-          </Link>
-        </div>
-        <p className="text-[10px] text-zinc-400">
-          Aplikasi dibuat oleh Departemen IT Tanimas Group
-        </p>
+      {/* Navigasi Kembali ke Buku Tamu */}
+      <div className="mt-6 pt-4 border-t border-zinc-100 text-center">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 font-medium transition-colors"
+        >
+          <span>←</span>
+          <span>Bukan staf? Kembali ke Buku Tamu</span>
+        </Link>
       </div>
 
       {/* Modal Dialog Lupa Kata Sandi */}
@@ -437,13 +432,13 @@ function LoginForm() {
 
 /**
  * Halaman utama login internal (/login).
- * Menampilkan latar belakang company_profile.JPG dengan overlay gelap profesional.
+ * Menampilkan latar belakang company_profile.JPG dengan overlay gelap profesional dan layout yang 100% responsif.
  */
 export default function LoginPage() {
   return (
-    <main className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+    <main className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 sm:p-6 py-10 overflow-y-auto">
       {/* Background Image Perusahaan */}
-      <div className="absolute inset-0 z-0">
+      <div className="fixed inset-0 z-0">
         <Image
           src="/assets/images/company_profile.JPG"
           alt="Latar Belakang PT Tanimas Resources Internasional"
@@ -452,26 +447,30 @@ export default function LoginPage() {
           className="object-cover object-center"
         />
         {/* Overlay gelap agar kartu login di tengah sangat jelas dan kontras */}
-        <div className="absolute inset-0 bg-zinc-950/65 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-zinc-950/70 backdrop-blur-[2px]" />
       </div>
 
-      {/* Konten Kartu Login */}
-      <Suspense
-        fallback={
-          <div className="w-full max-w-md bg-white/95 rounded-3xl p-8 text-center text-zinc-500 relative z-10 flex items-center justify-center gap-2">
-            <IconSpinner className="w-5 h-5" />
-            <span className="text-sm font-medium">Memuat halaman login...</span>
-          </div>
-        }
-      >
-        <LoginForm />
-      </Suspense>
+      {/* Konten Kartu Login & Footer */}
+      <div className="w-full max-w-md my-auto relative z-10 flex flex-col items-center">
+        <Suspense
+          fallback={
+            <div className="w-full bg-white/95 rounded-3xl p-8 text-center text-zinc-500 shadow-2xl flex items-center justify-center gap-2">
+              <IconSpinner className="w-5 h-5 animate-spin" />
+              <span className="text-sm font-medium">Memuat halaman login...</span>
+            </div>
+          }
+        >
+          <LoginForm />
+        </Suspense>
 
-      {/* Footer Copyright */}
-      <footer className="mt-6 text-center text-xs text-zinc-400 space-y-0.5 relative z-10">
-        <p>© {new Date().getFullYear()} PT. Tanimas Resources Internasional</p>
-        <p className="text-[11px] text-zinc-300 font-medium">Aplikasi dibuat oleh Departemen IT Tanimas Group</p>
-      </footer>
+        {/* Footer Copyright Elegan di Bawah Kartu */}
+        <footer className="mt-6 text-center text-xs text-zinc-300 space-y-0.5">
+          <p>© {new Date().getFullYear()} PT. Tanimas Resources Internasional</p>
+          <p className="text-[11px] text-zinc-400 font-medium">
+            Aplikasi dibuat oleh Departemen IT Tanimas Group
+          </p>
+        </footer>
+      </div>
     </main>
   );
 }

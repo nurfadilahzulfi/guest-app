@@ -6,9 +6,6 @@ import { Field } from "@/components/ui/field";
 import { TextArea } from "@/components/ui/text-area";
 import { TextInput } from "@/components/ui/text-input";
 
-/**
- * Tahap 3: Pemilihan kategori tujuan kunjungan, estimasi durasi, dan kendaraan.
- */
 export function StepPurpose({ data, onChange, errors }) {
   return (
     <div className="space-y-5">
@@ -62,7 +59,6 @@ export function StepPurpose({ data, onChange, errors }) {
         </div>
       )}
 
-      {/* Perkiraan Durasi Pertemuan */}
       <Field label="Perkiraan Durasi Pertemuan" id="duration" required hint="Pilih estimasi alokasi waktu yang Anda butuhkan bersama pihak yang dituju.">
         <div className="flex flex-wrap gap-2">
           {DURATION_OPTIONS.map((dur) => {
@@ -88,7 +84,6 @@ export function StepPurpose({ data, onChange, errors }) {
         {errors.duration && <p className="text-xs text-red-500 mt-1">{errors.duration}</p>}
       </Field>
 
-      {/* Jenis & Nomor Plat Kendaraan */}
       <Field label="Kendaraan yang Digunakan" id="vehicleType" required hint="Pilih sarana transportasi yang Anda bawa saat berkunjung.">
         <div className="flex flex-wrap gap-2">
           {VEHICLE_OPTIONS.map((veh) => {
@@ -119,7 +114,6 @@ export function StepPurpose({ data, onChange, errors }) {
         {errors.vehicleType && <p className="text-xs text-red-500 mt-1">{errors.vehicleType}</p>}
       </Field>
 
-      {/* Input Nomor Plat Kendaraan jika bermotor */}
       {data.vehicleType && data.vehicleType !== "Jalan Kaki / Tanpa Kendaraan" && (
         <Field label="Nomor Plat Kendaraan" id="licensePlate" required hint="Contoh: BK 1234 ABC (Untuk verifikasi dan tracking pos security).">
           <TextInput

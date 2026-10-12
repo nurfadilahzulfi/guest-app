@@ -4,10 +4,6 @@ import { cryptoTokenService } from "@/infrastructure/tokens/crypto-token-service
 import { prisma } from "@/infrastructure/prisma/client";
 import bcrypt from "bcryptjs";
 
-/**
- * Route handler validasi token reset kata sandi (GET).
- * GET /api/auth/reset-password/[token]
- */
 export async function GET(request, { params }) {
   try {
     const { token } = await params;
@@ -35,11 +31,6 @@ export async function GET(request, { params }) {
   }
 }
 
-/**
- * Route handler eksekusi reset kata sandi (POST).
- * POST /api/auth/reset-password/[token]
- * Body: { newPassword: string }
- */
 export async function POST(request, { params }) {
   try {
     const { token } = await params;
@@ -62,11 +53,9 @@ export async function POST(request, { params }) {
       transaction: async (fn) => {
         return await prisma.$transaction(async (tx) => {
           const user = await fn(tx);
-          // Invalidate semua database session lama milik user
           try {
             await tx.session.deleteMany({ where: { userId: user.id } });
           } catch (sessionErr) {
-            // Abaikan jika tabel session kosong/tidak digunakan
           }
           return user;
         });

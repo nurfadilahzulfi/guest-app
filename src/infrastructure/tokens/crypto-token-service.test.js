@@ -20,7 +20,6 @@ describe("Infrastructure: cryptoTokenService", () => {
       expect(createSpy).toHaveBeenCalledTimes(1);
       const callData = createSpy.mock.calls[0][0].data;
       expect(callData.visitId).toBe("visit-1");
-      // Cek apakah selisih waktu sekitar 24 jam
       const hoursDiff = (callData.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60);
       expect(hoursDiff).toBeCloseTo(24, 0);
       expect(result.id).toBe("action-1");
@@ -31,7 +30,7 @@ describe("Infrastructure: cryptoTokenService", () => {
         id: "action-1",
         token: "uuid-1",
         usedAt: null,
-        expiresAt: new Date(Date.now() + 60000), // masih berlaku
+        expiresAt: new Date(Date.now() + 60000),
       };
 
       vi.spyOn(prisma.hostActionToken, "findUnique").mockResolvedValue(validToken);

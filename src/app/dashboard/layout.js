@@ -7,10 +7,6 @@ export const metadata = {
   description: "Portal internal pengelolaan buku tamu digital PT. Tanimas Resources Internasional.",
 };
 
-/**
- * Layout server-side untuk memproteksi seluruh rute di bawah /dashboard.
- * Memastikan hanya user dengan sesi aktif yang dapat mengakses (AGENTS.md Bagian 7).
- */
 export default async function DashboardLayout({ children }) {
   const session = await auth();
 

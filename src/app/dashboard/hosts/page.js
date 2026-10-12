@@ -15,11 +15,6 @@ import { AddHostModal } from "@/components/dashboard/hosts/add-host-modal";
 import { EditHostModal } from "@/components/dashboard/hosts/edit-host-modal";
 import { HostInviteSuccessModal } from "@/components/dashboard/hosts/host-invite-success-modal";
 
-/**
- * Halaman Pengelolaan Direktori Karyawan Host (Administrator Only).
- * Orchestrator: mengelola state dan memanggil use-case melalui API,
- * lalu mendistribusikan data ke komponen presentasi yang terpisah.
- */
 export default function ManageHostsPage() {
   const [hosts, setHosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +28,6 @@ export default function ManageHostsPage() {
   const [inviteSuccessData, setInviteSuccessData] = useState(null);
   const [showHostPassword, setShowHostPassword] = useState(false);
 
-  // State Modal Edit
   const [editHost, setEditHost] = useState(null);
   const [editFormData, setEditFormData] = useState({
     name: "", email: "", department: "", position: "",
@@ -54,13 +48,9 @@ export default function ManageHostsPage() {
   const fetchHosts = useCallback(async () => {
     setLoading(true);
     try {
-      // Ambil semua user (semua role) yang memiliki data departemen/jabatan
-      // agar administrator dan admin HRD yang berperan sebagai karyawan juga muncul
       const res = await fetch("/api/users");
       if (res.ok) {
         const data = await res.json();
-        // Ambil semua pengguna sistem (HOST, ADMINISTRATOR, ADMIN_HRD)
-        // Seluruh staf dan pimpinan akan tampil di direktori karyawan
         const allEmployees = Array.isArray(data) ? data : [];
         setHosts(allEmployees);
       }
@@ -198,7 +188,6 @@ export default function ManageHostsPage() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-lg font-bold text-zinc-900">Data Karyawan</h1>
@@ -224,7 +213,6 @@ export default function ManageHostsPage() {
         </div>
       </div>
 
-      {/* Alert Sukses */}
       {successMsg && (
         <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
           <IconCheck className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -232,7 +220,6 @@ export default function ManageHostsPage() {
         </div>
       )}
 
-      {/* Filter & Daftar */}
       <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-4">
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
@@ -268,7 +255,6 @@ export default function ManageHostsPage() {
         />
       </div>
 
-      {/* Modals */}
       <AddHostModal
         isOpen={showAddModal}
         formData={formData}

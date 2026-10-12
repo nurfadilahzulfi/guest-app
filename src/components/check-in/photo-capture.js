@@ -21,17 +21,16 @@ import {
  * @param {string} [props.error] - Pesan kesalahan validasi jika foto belum diambil
  */
 export function PhotoCapture({ value, onChange, error }) {
-  const [isCameraOpen, setIsCameraOpen]     = useState(false);
-  const [isVideoReady, setIsVideoReady]     = useState(false);
-  const [facingMode, setFacingMode]         = useState("user");
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
+  const [facingMode, setFacingMode] = useState("user");
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
-  const [cameraLoading, setCameraLoading]   = useState(false);
-  const [cameraError, setCameraError]       = useState("");
+  const [cameraLoading, setCameraLoading] = useState(false);
+  const [cameraError, setCameraError] = useState("");
 
-  const videoRef  = useRef(null);
+  const videoRef = useRef(null);
   const streamRef = useRef(null);
 
-  // Periksa apakah perangkat memiliki lebih dari 1 kamera
   useEffect(() => {
     if (typeof navigator !== "undefined" && navigator.mediaDevices?.enumerateDevices) {
       navigator.mediaDevices
@@ -39,11 +38,10 @@ export function PhotoCapture({ value, onChange, error }) {
         .then((devices) => {
           setHasMultipleCameras(devices.filter((d) => d.kind === "videoinput").length > 1);
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, []);
 
-  // Hentikan semua track kamera dan bersihkan srcObject
   const stopStream = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -55,14 +53,8 @@ export function PhotoCapture({ value, onChange, error }) {
     setIsVideoReady(false);
   }, []);
 
-  // Hentikan stream saat komponen unmount
   useEffect(() => () => stopStream(), [stopStream]);
 
-  /**
-   * Pasangkan stream yang tersimpan di streamRef ke elemen <video> yang baru saja
-   * di-mount oleh React. Menggunakan useLayoutEffect agar berjalan SETELAH DOM
-   * diperbarui tetapi SEBELUM browser me-paint, sehingga tidak ada frame hitam.
-   */
   useLayoutEffect(() => {
     if (!isCameraOpen || !streamRef.current) return;
 
@@ -76,24 +68,20 @@ export function PhotoCapture({ value, onChange, error }) {
 
       const tryPlay = () => {
         video.play().catch((err) => {
-          // NotAllowedError bisa muncul di beberapa browser; coba ulang setelah interaksi
           console.warn("Video play() error:", err.name, err.message);
         });
       };
 
       if (video.readyState >= 1) {
-        // Metadata sudah tersedia, langsung play
         tryPlay();
       } else {
         video.onloadedmetadata = tryPlay;
       }
     };
 
-    // Jalankan sekarang (jika <video> sudah ada di DOM)
     attachStream();
   }, [isCameraOpen]);
 
-  // Buka stream kamera via getUserMedia
   const startCamera = useCallback(
     async (mode = facingMode) => {
       stopStream();
@@ -113,13 +101,11 @@ export function PhotoCapture({ value, onChange, error }) {
 
         let stream;
         try {
-          // Coba dengan facingMode dan resolusi ideal terlebih dahulu
           stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: mode, width: { ideal: 720 }, height: { ideal: 720 } },
             audio: false,
           });
         } catch {
-          // Fallback: constraint paling dasar agar semua device terdukung
           stream = await navigator.mediaDevices.getUserMedia({
             video: true,
             audio: false,
@@ -128,7 +114,6 @@ export function PhotoCapture({ value, onChange, error }) {
 
         streamRef.current = stream;
 
-        // Set state SETELAH stream siap — useLayoutEffect akan pasang srcObject
         setIsCameraOpen(true);
       } catch (err) {
         console.error("Gagal membuka kamera:", err);
@@ -157,21 +142,18 @@ export function PhotoCapture({ value, onChange, error }) {
     [facingMode, stopStream]
   );
 
-  // Tutup kamera secara manual
   const handleCloseCamera = useCallback(() => {
     stopStream();
     setIsCameraOpen(false);
     setCameraError("");
   }, [stopStream]);
 
-  // Alihkan antara kamera depan (user) dan belakang (environment)
   const handleSwitchCamera = useCallback(() => {
     const newMode = facingMode === "user" ? "environment" : "user";
     setFacingMode(newMode);
     startCamera(newMode);
   }, [facingMode, startCamera]);
 
-  // Ambil snapshot dari video feed ke canvas dan simpan sebagai JPEG Base64
   const handleCapture = useCallback(() => {
     const video = videoRef.current;
     if (!video || !video.videoWidth || !video.videoHeight) {
@@ -181,20 +163,18 @@ export function PhotoCapture({ value, onChange, error }) {
 
     const { videoWidth, videoHeight } = video;
 
-    // Crop area tengah 1:1 (portrait-safe)
-    const size      = Math.min(videoWidth, videoHeight);
-    const startX    = (videoWidth  - size) / 2;
-    const startY    = (videoHeight - size) / 2;
+    const size = Math.min(videoWidth, videoHeight);
+    const startX = (videoWidth - size) / 2;
+    const startY = (videoHeight - size) / 2;
     const targetSize = Math.min(size, 640);
 
     const canvas = document.createElement("canvas");
-    canvas.width  = targetSize;
+    canvas.width = targetSize;
     canvas.height = targetSize;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Mirror horizontal untuk kamera depan agar hasil sesuai tampilan preview
     if (facingMode === "user") {
       ctx.translate(targetSize, 0);
       ctx.scale(-1, 1);
@@ -209,41 +189,32 @@ export function PhotoCapture({ value, onChange, error }) {
     onChange(dataUrl);
   }, [facingMode, onChange, stopStream]);
 
-  // Hapus foto yang sudah diambil
   const handleRemove = useCallback(() => onChange(""), [onChange]);
 
   return (
     <div className="space-y-2">
-      {/* ─── Kasus 1: Kamera Sedang Aktif ─── */}
       {isCameraOpen ? (
         <div className="relative rounded-2xl overflow-hidden bg-black border border-zinc-800 shadow-md">
-          {/* Area Video */}
           <div className="relative aspect-square w-full max-w-xs mx-auto overflow-hidden bg-black flex items-center justify-center">
-            {/* ─ Elemen <video> ─
-                ref callback memastikan srcObject langsung dipasang saat elemen
-                pertama kali muncul di DOM, sebelum useLayoutEffect berikutnya
-                sempat berjalan — double-coverage untuk menghindari layar hitam. */}
             <video
               ref={(el) => {
                 videoRef.current = el;
                 if (el && streamRef.current && el.srcObject !== streamRef.current) {
                   el.srcObject = streamRef.current;
-                  el.play().catch(() => {});
+                  el.play().catch(() => { });
                 }
               }}
               autoPlay
               playsInline
               muted
-              onLoadedMetadata={(e) => e.currentTarget.play().catch(() => {})}
+              onLoadedMetadata={(e) => e.currentTarget.play().catch(() => { })}
               onLoadedData={() => setIsVideoReady(true)}
               onPlaying={() => setIsVideoReady(true)}
               onCanPlay={() => setIsVideoReady(true)}
-              className={`w-full h-full object-cover transition-opacity duration-300 ${
-                isVideoReady ? "opacity-100" : "opacity-0"
-              } ${facingMode === "user" ? "-scale-x-100" : ""}`}
+              className={`w-full h-full object-cover transition-opacity duration-300 ${isVideoReady ? "opacity-100" : "opacity-0"
+                } ${facingMode === "user" ? "-scale-x-100" : ""}`}
             />
 
-            {/* Spinner saat menghubungkan kamera */}
             {!isVideoReady && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black text-white gap-2.5 z-10">
                 <IconSpinner className="w-8 h-8 animate-spin text-white/70" />
@@ -253,7 +224,6 @@ export function PhotoCapture({ value, onChange, error }) {
               </div>
             )}
 
-            {/* Panduan posisi wajah */}
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-20">
               <div className="w-56 h-[17rem] sm:w-60 sm:h-72 rounded-[50%] border-2 border-white/70 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] flex items-end justify-center pb-3">
                 <span className="text-[10px] sm:text-xs font-semibold text-white/90 bg-black/60 px-2.5 py-0.5 rounded-full backdrop-blur-sm">
@@ -262,7 +232,6 @@ export function PhotoCapture({ value, onChange, error }) {
               </div>
             </div>
 
-            {/* Tutup kamera */}
             <button
               type="button"
               onClick={handleCloseCamera}
@@ -272,7 +241,6 @@ export function PhotoCapture({ value, onChange, error }) {
               <IconX className="w-4 h-4" />
             </button>
 
-            {/* Ganti kamera (hanya jika ada lebih dari 1) */}
             {hasMultipleCameras && (
               <button
                 type="button"
@@ -285,9 +253,7 @@ export function PhotoCapture({ value, onChange, error }) {
             )}
           </div>
 
-          {/* Kontrol shutter */}
           <div className="p-4 bg-zinc-950 flex items-center justify-between px-8">
-            {/* Spacer kiri agar tombol shutter tepat di tengah */}
             <span className="w-12" />
 
             <button
@@ -312,10 +278,8 @@ export function PhotoCapture({ value, onChange, error }) {
           </div>
         </div>
       ) : value ? (
-        /* ─── Kasus 2: Foto Sudah Diambil ─── */
         <div className="p-4 rounded-2xl border border-zinc-200 bg-zinc-50 flex flex-col sm:flex-row items-center gap-4">
           <div className="relative w-28 h-28 shrink-0 rounded-xl overflow-hidden border-2 border-white shadow-sm bg-zinc-200">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={value} alt="Foto Tamu" className="w-full h-full object-cover" />
             <div className="absolute bottom-1 right-1 bg-emerald-600 text-white p-1 rounded-full shadow-xs">
               <IconCheck className="w-3 h-3" />
@@ -351,11 +315,9 @@ export function PhotoCapture({ value, onChange, error }) {
           </div>
         </div>
       ) : (
-        /* ─── Kasus 3: Belum Ada Foto ─── */
         <div
-          className={`p-5 rounded-2xl border-2 border-dashed transition-colors flex flex-col items-center justify-center text-center gap-3 bg-zinc-50/70 ${
-            error ? "border-red-300 bg-red-50/30" : "border-zinc-300 hover:border-zinc-400"
-          }`}
+          className={`p-5 rounded-2xl border-2 border-dashed transition-colors flex flex-col items-center justify-center text-center gap-3 bg-zinc-50/70 ${error ? "border-red-300 bg-red-50/30" : "border-zinc-300 hover:border-zinc-400"
+            }`}
         >
           <div className="w-12 h-12 rounded-2xl bg-zinc-900 text-white flex items-center justify-center shadow-xs">
             <IconCamera className="w-6 h-6" />
@@ -390,7 +352,6 @@ export function PhotoCapture({ value, onChange, error }) {
         </div>
       )}
 
-      {/* Pesan error akses kamera */}
       {cameraError && (
         <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50 text-xs text-amber-900 space-y-2">
           <p className="font-medium">{cameraError}</p>
@@ -405,7 +366,6 @@ export function PhotoCapture({ value, onChange, error }) {
         </div>
       )}
 
-      {/* Pesan error validasi form */}
       {error && !cameraError && (
         <p className="text-xs text-red-600 font-medium mt-1">{error}</p>
       )}

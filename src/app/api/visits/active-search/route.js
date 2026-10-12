@@ -1,10 +1,5 @@
 import { findActiveVisitByPhone } from "@/application/use-cases/checkout-guest";
 import { prismaVisitRepository } from "@/infrastructure/repositories/prisma-visit-repository";
-
-/**
- * POST /api/visits/active-search
- * Mencari kunjungan aktif hari ini berdasarkan nomor HP (untuk tamu yang tab-nya tertutup).
- */
 export async function POST(request) {
   try {
     const { phone } = await request.json();

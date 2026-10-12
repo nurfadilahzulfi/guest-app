@@ -8,9 +8,6 @@ import {
   IconUsers,
 } from "@/components/icons/guest-icons";
 
-/**
- * Token desain warna dan tipografi resmi PT. Tanimas Resources Internasional.
- */
 export const TOKENS = {
   "--tm-forest": "#09090B",
   "--tm-emerald": "#18181B",
@@ -25,9 +22,6 @@ export const TOKENS = {
   "--font-display": "'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif",
 };
 
-/**
- * Konfigurasi langkah-langkah pada formulir check-in mandiri.
- */
 export const STEPS = [
   { id: 1, label: "Identitas", icon: IconUser },
   { id: 2, label: "Pihak Dituju", icon: IconBuilding },
@@ -35,9 +29,6 @@ export const STEPS = [
   { id: 4, label: "Konfirmasi", icon: IconClipboard },
 ];
 
-/**
- * Pilihan kategori tujuan kunjungan tamu.
- */
 export const PURPOSE_OPTIONS = [
   { value: "Kunjungan Bisnis", icon: IconBriefcase, desc: "Pertemuan, negosiasi, atau diskusi kerja" },
   { value: "Pengiriman Barang / Dokumen", icon: IconSend, desc: "Antar paket, dokumen, atau surat" },
@@ -47,14 +38,8 @@ export const PURPOSE_OPTIONS = [
   { value: "Lainnya", icon: IconTarget, desc: "Keperluan lain yang tidak tercantum" },
 ];
 
-/**
- * Pilihan jenis kelamin tamu.
- */
 export const GENDER_OPTIONS = ["Laki-laki", "Perempuan"];
 
-/**
- * Pilihan perkiraan durasi pertemuan tamu dengan host.
- */
 export const DURATION_OPTIONS = [
   "15 Menit",
   "30 Menit",

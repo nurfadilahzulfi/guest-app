@@ -29,8 +29,6 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [showForgotModal, setShowForgotModal] = useState(false);
-
-  // State untuk modal Lupa Kata Sandi
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
@@ -121,7 +119,6 @@ function LoginForm() {
         return;
       }
 
-      // Redirect ke dashboard tujuan atau URL callback
       window.location.href = callbackUrl;
     } catch (err) {
       setError("Terjadi kesalahan sistem saat mencoba masuk. Silahkan coba lagi.");
@@ -131,7 +128,6 @@ function LoginForm() {
 
   return (
     <div className="w-full max-w-md bg-white/98 rounded-3xl shadow-2xl border border-zinc-200/90 p-6 sm:p-9 relative z-10 backdrop-blur-sm">
-      {/* Brand Header */}
       <div className="flex flex-col items-center text-center mb-6">
         <div className="w-14 h-14 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex items-center justify-center p-2 mb-3.5 shadow-xs">
           <Image
@@ -154,7 +150,6 @@ function LoginForm() {
         </p>
       </div>
 
-      {/* Alert Sukses Reset Password */}
       {resetSuccess && (
         <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/90 text-emerald-800 text-xs flex items-start gap-2.5 animate-fadeIn">
           <IconCircleCheck className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
@@ -167,7 +162,6 @@ function LoginForm() {
         </div>
       )}
 
-      {/* Alert Error Global */}
       {error && (
         <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200/90 text-red-700 text-xs flex items-start gap-2.5 animate-fadeIn">
           <span className="font-semibold shrink-0">⚠️</span>
@@ -175,7 +169,6 @@ function LoginForm() {
         </div>
       )}
 
-      {/* Formulir — noValidate mencegah popup default browser yang kaku */}
       <form noValidate onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
@@ -196,8 +189,8 @@ function LoginForm() {
               if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: "" }));
             }}
             className={`w-full rounded-xl border ${fieldErrors.email
-                ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-red-500/20"
-                : "border-zinc-200 bg-zinc-50/50 focus:border-zinc-900 focus:ring-zinc-900"
+              ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-red-500/20"
+              : "border-zinc-200 bg-zinc-50/50 focus:border-zinc-900 focus:ring-zinc-900"
               } px-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:ring-1 transition-colors duration-150`}
           />
           {fieldErrors.email && (
@@ -228,8 +221,8 @@ function LoginForm() {
                 if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: "" }));
               }}
               className={`w-full rounded-xl border ${fieldErrors.password
-                  ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-red-500/20"
-                  : "border-zinc-200 bg-zinc-50/50 focus:border-zinc-900 focus:ring-zinc-900"
+                ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-red-500/20"
+                : "border-zinc-200 bg-zinc-50/50 focus:border-zinc-900 focus:ring-zinc-900"
                 } px-3.5 py-2.5 pr-11 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:ring-1 transition-colors duration-150`}
             />
             <button
@@ -254,7 +247,6 @@ function LoginForm() {
           )}
         </div>
 
-        {/* Baris Opsi: Ingat Perangkat & Lupa Sandi */}
         <div className="flex items-center justify-between pt-1">
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <input
@@ -278,7 +270,6 @@ function LoginForm() {
           </button>
         </div>
 
-        {/* Tombol Masuk */}
         <button
           type="submit"
           id="btn-login-submit"
@@ -296,7 +287,6 @@ function LoginForm() {
         </button>
       </form>
 
-      {/* Navigasi Kembali ke Buku Tamu */}
       <div className="mt-6 pt-4 border-t border-zinc-100 text-center">
         <Link
           href="/"
@@ -307,7 +297,6 @@ function LoginForm() {
         </Link>
       </div>
 
-      {/* Modal Dialog Lupa Kata Sandi */}
       {showForgotModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
           <div className="bg-white rounded-2xl shadow-2xl border border-zinc-200 max-w-sm w-full p-6 space-y-4">
@@ -388,8 +377,8 @@ function LoginForm() {
                         }}
                         placeholder="contoh: admin@tanimas.co.id"
                         className={`w-full pl-9 pr-3 py-2 text-xs rounded-xl border ${forgotError
-                            ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-red-500/20"
-                            : "border-zinc-200 focus:border-zinc-900 focus:ring-zinc-900/10"
+                          ? "border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-red-500/20"
+                          : "border-zinc-200 focus:border-zinc-900 focus:ring-zinc-900/10"
                           } focus:outline-none focus:ring-2 transition-colors`}
                         autoFocus
                       />
@@ -430,14 +419,9 @@ function LoginForm() {
   );
 }
 
-/**
- * Halaman utama login internal (/login).
- * Menampilkan latar belakang company_profile.JPG dengan overlay gelap profesional dan layout yang 100% responsif.
- */
 export default function LoginPage() {
   return (
     <main className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 sm:p-6 py-10 overflow-y-auto">
-      {/* Background Image Perusahaan */}
       <div className="fixed inset-0 z-0">
         <Image
           src="/assets/images/company_profile.JPG"
@@ -446,11 +430,9 @@ export default function LoginPage() {
           priority
           className="object-cover object-center"
         />
-        {/* Overlay gelap agar kartu login di tengah sangat jelas dan kontras */}
         <div className="absolute inset-0 bg-zinc-950/70 backdrop-blur-[2px]" />
       </div>
 
-      {/* Konten Kartu Login & Footer */}
       <div className="w-full max-w-md my-auto relative z-10 flex flex-col items-center">
         <Suspense
           fallback={
@@ -462,13 +444,8 @@ export default function LoginPage() {
         >
           <LoginForm />
         </Suspense>
-
-        {/* Footer Copyright Elegan di Bawah Kartu */}
-        <footer className="mt-6 text-center text-xs text-zinc-300 space-y-0.5">
-          <p>© {new Date().getFullYear()} PT. Tanimas Resources Internasional</p>
-          <p className="text-[11px] text-zinc-400 font-medium">
-            Aplikasi dibuat oleh Departemen IT Tanimas Group
-          </p>
+        <footer className="mt-6 text-center text-xs text-zinc-300 font-medium">
+          <p>Aplikasi Dibuat oleh Nur Fadilah Zulfi & Diah Fika Satrya</p>
         </footer>
       </div>
     </main>

@@ -1,9 +1,6 @@
 import { prismaVisitRepository } from "@/infrastructure/repositories/prisma-visit-repository";
 
 /**
- * Endpoint publik untuk menyajikan foto wajah tamu secara langsung sebagai binary image (JPEG/PNG).
- * Digunakan oleh email client, link share, atau browser tanpa perlu payload Base64 raksasa di HTML.
- * 
  * @param {Request} request
  * @param {{ params: Promise<{ token: string }> }} context
  * @returns {Promise<Response>}
@@ -20,7 +17,6 @@ export async function GET(request, { params }) {
       return new Response("Not Found", { status: 404 });
     }
 
-    // Jika disimpan sebagai Base64 Data URL (data:image/...)
     if (visit.guestPhotoUrl.startsWith("data:image/")) {
       const match = visit.guestPhotoUrl.match(/^data:([^;]+);base64,(.+)$/);
       if (match) {
@@ -39,7 +35,6 @@ export async function GET(request, { params }) {
       }
     }
 
-    // Jika disimpan sebagai URL eksternal (Cloudinary / S3 / dll)
     if (visit.guestPhotoUrl.startsWith("http://") || visit.guestPhotoUrl.startsWith("https://")) {
       return Response.redirect(visit.guestPhotoUrl, 302);
     }

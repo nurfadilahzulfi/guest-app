@@ -2,10 +2,6 @@ import { auth } from "@/infrastructure/auth/auth-options";
 import { checkoutGuestById } from "@/application/use-cases/checkout-guest";
 import { prismaVisitRepository } from "@/infrastructure/repositories/prisma-visit-repository";
 
-/**
- * POST /api/visits/checkout
- * Endpoint checkout manual oleh Administrator / Host di dashboard.
- */
 export async function POST(request) {
   try {
     const session = await auth();
@@ -18,7 +14,6 @@ export async function POST(request) {
       return Response.json({ error: "visitId wajib diisi" }, { status: 400 });
     }
 
-    // Jika role HOST, verifikasi kepemilikan kunjungan
     if (session.user.role === "HOST") {
       const existing = await prismaVisitRepository.findById(visitId);
       if (!existing || existing.hostId !== session.user.id) {

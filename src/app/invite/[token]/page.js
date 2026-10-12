@@ -22,7 +22,6 @@ export default function InviteActivationPage({ params }) {
   const [inviteUser, setInviteUser] = useState(null);
   const [fetchError, setFetchError] = useState("");
 
-  // Form states
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +29,6 @@ export default function InviteActivationPage({ params }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  // Success state showing credentials
   const [activationSuccess, setActivationSuccess] = useState(false);
   const [showSavedPassword, setShowSavedPassword] = useState(false);
   const [copiedCreds, setCopiedCreds] = useState(false);
@@ -109,11 +107,9 @@ export default function InviteActivationPage({ params }) {
 
   return (
     <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Decor */}
       <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-60 pointer-events-none" />
 
       <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-zinc-200 p-6 sm:p-8 relative z-10">
-        {/* Brand Header */}
         <div className="flex flex-col items-center text-center mb-6">
           <div className="w-14 h-14 rounded-2xl bg-zinc-50 border border-zinc-200/80 flex items-center justify-center p-2 mb-3.5 shadow-xs">
             <Image
@@ -136,7 +132,6 @@ export default function InviteActivationPage({ params }) {
           </p>
         </div>
 
-        {/* ─── State 1: Sedang Memeriksa Token ─── */}
         {loadingInfo && (
           <div className="py-12 text-center text-zinc-500 space-y-3">
             <IconSpinner className="w-6 h-6 text-zinc-800 animate-spin mx-auto" />
@@ -144,7 +139,6 @@ export default function InviteActivationPage({ params }) {
           </div>
         )}
 
-        {/* ─── State 2: Token Tidak Valid / Kedaluwarsa ─── */}
         {!loadingInfo && fetchError && (
           <div className="space-y-5 text-center py-4">
             <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center mx-auto text-xl font-bold">
@@ -170,7 +164,6 @@ export default function InviteActivationPage({ params }) {
           </div>
         )}
 
-        {/* ─── State 3: Layar Sukses Aktivasi & Konfirmasi Kredensial ─── */}
         {!loadingInfo && !fetchError && activationSuccess && (
           <div className="space-y-5 animate-fadeIn">
             <div className="flex flex-col items-center text-center space-y-2">
@@ -185,7 +178,6 @@ export default function InviteActivationPage({ params }) {
               </p>
             </div>
 
-            {/* Kartu Ringkasan Kredensial */}
             <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200/90 space-y-3 text-xs">
               <div>
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
@@ -252,10 +244,8 @@ export default function InviteActivationPage({ params }) {
           </div>
         )}
 
-        {/* ─── State 4: Form Pembuatan Kata Sandi Baru ─── */}
         {!loadingInfo && !fetchError && !activationSuccess && inviteUser && (
           <div className="space-y-5">
-            {/* Info Pengguna yang Diundang */}
             <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/80 space-y-2">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-zinc-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
@@ -284,14 +274,12 @@ export default function InviteActivationPage({ params }) {
               )}
             </div>
 
-            {/* Error Alert */}
             {submitError && (
               <div className="p-3 rounded-xl bg-red-50 text-red-700 text-xs border border-red-200 animate-fadeIn">
                 {submitError}
               </div>
             )}
 
-            {/* Form Input Password */}
             <form noValidate onSubmit={handleActivate} className="space-y-4 text-xs">
               <div>
                 <label className="block font-semibold text-zinc-700 uppercase tracking-wider text-[10px] mb-1">
@@ -374,7 +362,6 @@ export default function InviteActivationPage({ params }) {
         )}
       </div>
 
-      {/* Footer info */}
       <footer className="mt-6 text-center text-xs text-zinc-400 space-y-1 relative z-10">
         <p>© {new Date().getFullYear()} PT. Tanimas Resources Internasional</p>
         <p className="text-[11px] text-zinc-500 font-medium">Aplikasi dibuat oleh Departemen IT Tanimas Group</p>

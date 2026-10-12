@@ -55,7 +55,6 @@ export function StepConfirm({ data, hosts }) {
       {data.guestPhoto && (
         <div className="p-3.5 rounded-2xl border border-[var(--tm-line)] bg-white flex items-center gap-3.5 shadow-xs">
           <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-zinc-200 shrink-0 bg-zinc-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={data.guestPhoto}
               alt="Foto Wajah Tamu"

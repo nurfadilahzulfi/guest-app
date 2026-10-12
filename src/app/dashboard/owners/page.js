@@ -12,10 +12,6 @@ import {
   IconPhone,
 } from "@/components/icons/guest-icons";
 
-/**
- * Halaman Pengelolaan Daftar Tamu Khusus / Owner (Administrator Only).
- * Mengizinkan penambahan nomor HP Owner (otomatis disetujui tanpa perlu respon host).
- */
 export default function ManageOwnersPage() {
   const [owners, setOwners] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +59,6 @@ export default function ManageOwnersPage() {
     e.preventDefault();
     setFormError("");
 
-    // Validasi inline — tidak menggunakan popup default browser
     const errors = {};
     if (!formData.name?.trim()) errors.name = "Nama owner wajib diisi.";
     if (!formData.phoneNumber?.trim()) {
@@ -159,7 +154,6 @@ export default function ManageOwnersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header Halaman */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -188,7 +182,6 @@ export default function ManageOwnersPage() {
         </button>
       </div>
 
-      {/* Alert Sukses */}
       {successMsg && (
         <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2 animate-fadeIn">
           <IconCheck className="w-4 h-4 text-emerald-600" />
@@ -196,9 +189,7 @@ export default function ManageOwnersPage() {
         </div>
       )}
 
-      {/* Filter & Toolbar */}
       <div className="bg-white rounded-3xl border border-zinc-200/90 p-5 shadow-xs space-y-4">
-        {/* Search */}
         <div className="relative max-w-sm w-full">
           <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">
             <IconSearch className="w-4 h-4" />
@@ -212,7 +203,6 @@ export default function ManageOwnersPage() {
           />
         </div>
 
-        {/* Tabel Data Owner */}
         <div className="overflow-x-auto rounded-2xl border border-zinc-200/90">
           <table className="w-full text-left text-xs">
             <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 uppercase tracking-wider text-[10px] font-bold">
@@ -262,11 +252,10 @@ export default function ManageOwnersPage() {
 
                     <td className="px-4 py-3 text-center whitespace-nowrap">
                       <span
-                        className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                          owner.isActive
+                        className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md border ${owner.isActive
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                             : "bg-zinc-100 text-zinc-500 border-zinc-200"
-                        }`}
+                          }`}
                       >
                         {owner.isActive ? "Aktif" : "Nonaktif"}
                       </span>
@@ -310,7 +299,6 @@ export default function ManageOwnersPage() {
         </div>
       </div>
 
-      {/* Modal Tambah Owner Baru */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
           <div className="bg-white rounded-3xl shadow-2xl border border-zinc-200 max-w-md w-full p-6 animate-scaleIn">
@@ -352,11 +340,10 @@ export default function ManageOwnersPage() {
                     setFormData({ ...formData, name: e.target.value });
                     if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: "" }));
                   }}
-                  className={`w-full rounded-xl border px-3.5 py-2 text-zinc-900 focus:outline-none transition-colors ${
-                    fieldErrors.name
+                  className={`w-full rounded-xl border px-3.5 py-2 text-zinc-900 focus:outline-none transition-colors ${fieldErrors.name
                       ? "border-red-400 bg-red-50 focus:border-red-500"
                       : "border-zinc-200 focus:border-zinc-900"
-                  }`}
+                    }`}
                 />
                 {fieldErrors.name && (
                   <p className="mt-1 text-[10px] text-red-500 flex items-center gap-1">
@@ -378,11 +365,10 @@ export default function ManageOwnersPage() {
                     setFormData({ ...formData, phoneNumber: e.target.value });
                     if (fieldErrors.phoneNumber) setFieldErrors((prev) => ({ ...prev, phoneNumber: "" }));
                   }}
-                  className={`w-full rounded-xl border px-3.5 py-2 text-zinc-900 focus:outline-none transition-colors ${
-                    fieldErrors.phoneNumber
+                  className={`w-full rounded-xl border px-3.5 py-2 text-zinc-900 focus:outline-none transition-colors ${fieldErrors.phoneNumber
                       ? "border-red-400 bg-red-50 focus:border-red-500"
                       : "border-zinc-200 focus:border-zinc-900"
-                  }`}
+                    }`}
                 />
                 {fieldErrors.phoneNumber && (
                   <p className="mt-1 text-[10px] text-red-500 flex items-center gap-1">

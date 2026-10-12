@@ -55,7 +55,6 @@ export function SuccessScreen({ visitToken, onReset }) {
         </p>
       </div>
 
-      {/* Info Token & Notifikasi Email */}
       <div className="w-full max-w-sm rounded-2xl border border-[var(--tm-line)] bg-[var(--tm-cream)] p-4 space-y-2 text-left">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--tm-emerald-deep)]">
@@ -72,7 +71,6 @@ export function SuccessScreen({ visitToken, onReset }) {
         </div>
       </div>
 
-      {/* Tombol Utama: Live Status */}
       <div className="w-full max-w-sm space-y-2.5 pt-2">
         <button
           type="button"

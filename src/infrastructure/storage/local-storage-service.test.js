@@ -3,12 +3,9 @@ import { localStorageService } from "./local-storage-service";
 
 describe("Infrastructure: localStorageService", () => {
   it("harus mengembalikan Base64 Data URL langsung (tanpa menulis ke disk) agar kompatibel dengan Vercel", async () => {
-    // 1x1 transparent PNG base64
     const sampleBase64 =
       "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
     const resultUrl = await localStorageService.saveVisitorPhoto(sampleBase64, "test_visitor");
-
-    // Di Vercel, hasil kembalian adalah Data URL itu sendiri (bukan path file)
     expect(resultUrl).toBe(sampleBase64);
     expect(resultUrl).toMatch(/^data:image\//);
   });

@@ -4,11 +4,6 @@ import { cryptoTokenService } from "@/infrastructure/tokens/crypto-token-service
 import { emailNotificationService } from "@/infrastructure/notifications/email-notification-service";
 import { getBaseAppUrl } from "@/infrastructure/utils/app-url";
 
-/**
- * Route handler publik untuk permintaan lupa kata sandi.
- * POST /api/auth/forgot-password
- * Body: { email: string }
- */
 export async function POST(request) {
   try {
     const body = await request.json().catch(() => ({}));

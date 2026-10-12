@@ -1,10 +1,6 @@
 import { checkoutGuestByToken } from "@/application/use-cases/checkout-guest";
 import { prismaVisitRepository } from "@/infrastructure/repositories/prisma-visit-repository";
 
-/**
- * POST /api/visits/checkout/[token]
- * Endpoint checkout mandiri oleh tamu via token kunjungan.
- */
 export async function POST(request, { params }) {
   try {
     const { token } = await params;

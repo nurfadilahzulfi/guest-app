@@ -44,10 +44,6 @@ function getLogoData(appUrl) {
   };
 }
 
-/**
- * Membuat transporter Nodemailer (SMTP) jika konfigurasi SMTP tersedia.
- * Mendukung Gmail (App Password) maupun server SMTP korporat lainnya.
- */
 function getSmtpTransporter() {
   if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     const cleanPass = process.env.SMTP_PASS.replace(/\s+/g, "");
@@ -55,7 +51,6 @@ function getSmtpTransporter() {
     const port = parseInt(process.env.SMTP_PORT || "465", 10);
     const secure = process.env.SMTP_SECURE === "true" || port === 465;
 
-    // Khusus jika menggunakan Gmail
     const isGmail = host.toLowerCase().includes("gmail") || process.env.SMTP_USER.toLowerCase().endsWith("@gmail.com");
     if (isGmail && (!process.env.SMTP_HOST || process.env.SMTP_HOST === "smtp.gmail.com")) {
       return nodemailer.createTransport({
@@ -80,14 +75,6 @@ function getSmtpTransporter() {
   return null;
 }
 
-/**
- * Implementasi NotificationService mendukung SMTP (Nodemailer) & Resend.
- * Routing notifikasi mengikuti matriks AGENTS.md Bagian 5.
- * Prioritas:
- * 1. SMTP (Nodemailer) jika SMTP_USER & SMTP_PASS terisi di .env
- * 2. Resend jika RESEND_API_KEY terisi di .env
- * 3. Fallback ke console.log jika tidak ada kredensial email yang dikonfigurasi.
- */
 export const emailNotificationService = {
   /**
    * Kirim notifikasi ke host (dan CC jika perlu) saat tamu check-in.
@@ -100,7 +87,6 @@ export const emailNotificationService = {
     const isOwnerVisit = visit.visitorType === "OWNER";
     const isDeptHead = host.isDepartmentHead;
 
-    // Tentukan penerima CC berdasarkan matriks notifikasi (AGENTS.md Bagian 5)
     let ccRecipients = [];
     if (isDeptHead) {
       const [adminHrds, administrators] = await Promise.all([
@@ -112,11 +98,9 @@ export const emailNotificationService = {
         .filter((email) => email !== host.email);
     }
 
-    // Tentukan tipe notifikasi
-    const isActionable = !isOwnerVisit; // REGULAR = actionable, OWNER = informational
+    const isActionable = !isOwnerVisit;
     const notifType = isActionable ? "Perlu Persetujuan" : "Informasi Kunjungan";
 
-    // Buat content email
     const subject = `[${notifType}] Kunjungan dari ${visit.guestName}`;
 
     const attachments = [];
@@ -126,9 +110,6 @@ export const emailNotificationService = {
       attachments.push(logoData.attachment);
     }
 
-    // Foto wajah tamu: jika Base64 data URL, pasang sebagai CID inline attachment
-    // agar HTML email sangat ringan (< 15 KB), tidak memicu pemotongan (clipping 102KB) di Gmail,
-    // dan langsung tampil di Gmail app tanpa diblokir oleh Google Image Proxy.
     let photoSrc = null;
     if (visit.guestPhotoUrl) {
       if (visit.guestPhotoUrl.startsWith("data:image/")) {
@@ -245,11 +226,10 @@ export const emailNotificationService = {
               <tr>
                 <td style="padding: 6px 0; color: #71717a;">Jenis Tamu</td>
                 <td style="padding: 6px 0; color: #18181b;">
-                  <span style="display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; ${
-                    isOwnerVisit
-                      ? "background: #dcfce7; color: #166534;"
-                      : "background: #dbeafe; color: #1e40af;"
-                  }">
+                  <span style="display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; ${isOwnerVisit
+        ? "background: #dcfce7; color: #166534;"
+        : "background: #dbeafe; color: #1e40af;"
+      }">
                     ${visit.visitorType}
                   </span>
                 </td>
@@ -271,7 +251,6 @@ export const emailNotificationService = {
       </div>
     `;
 
-    // Kirim email
     const to = [host.email];
     await this._sendEmail({ to, cc: ccRecipients, subject, html, attachments });
   },
@@ -629,7 +608,6 @@ export const emailNotificationService = {
    * @param {Array<Object>} [params.attachments]
    */
   async _sendEmail({ to, cc = [], subject, html, attachments = [] }) {
-    // 1. Coba kirim via SMTP (Nodemailer) jika konfigurasi SMTP ada
     const smtpTransporter = getSmtpTransporter();
     if (smtpTransporter) {
       try {
@@ -650,12 +628,9 @@ export const emailNotificationService = {
         return info;
       } catch (err) {
         console.error("Gagal mengirim email via SMTP:", err.message);
-        // Tetap lanjutkan (jangan throw error fatal agar alur utama tidak terputus)
         return;
       }
     }
-
-    // 2. Fallback ke Resend jika ada RESEND_API_KEY
     if (resend) {
       try {
         const emailData = {
@@ -677,7 +652,6 @@ export const emailNotificationService = {
                     content = fs.readFileSync(att.path);
                   }
                 } catch {
-                  // ignore
                 }
               }
               if (!content) return null;
@@ -702,7 +676,6 @@ export const emailNotificationService = {
       return;
     }
 
-    // 3. Fallback ke Console Stub jika tidak ada email service yang aktif
     console.log("=== EMAIL STUB (SMTP & Resend tidak dikonfigurasi) ===");
     console.log(`To: ${to.join(", ")}`);
     if (cc.length > 0) console.log(`CC: ${cc.join(", ")}`);

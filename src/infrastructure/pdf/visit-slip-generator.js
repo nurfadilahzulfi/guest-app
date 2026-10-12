@@ -32,7 +32,6 @@ export async function generateVisitSlipPdf(visit) {
   const margin = 15;
   const contentWidth = pageWidth - margin * 2;
 
-  // Header Perusahaan
   doc.setFillColor(9, 9, 11);
   doc.rect(0, 0, pageWidth, 28, "F");
 
@@ -47,7 +46,6 @@ export async function generateVisitSlipPdf(visit) {
   doc.text("SISTEM MANAJEMEN BUKU TAMU DIGITAL — VISITOR PASS & EXIT CLEARANCE", margin, 18);
   doc.text("Jl. Surfaktan No.B21 - B22 KEK, Sei Mangkei, Kec. Bosar Maligas, Kab. Simalungun, Sumut 21183", margin, 22);
 
-  // Judul Dokumen
   let y = 38;
   doc.setTextColor(9, 9, 11);
   doc.setFont("helvetica", "bold");
@@ -59,7 +57,6 @@ export async function generateVisitSlipPdf(visit) {
   doc.setTextColor(100, 116, 139);
   doc.text("Tanda bukti sah kunjungan dan izin keluar area perkantoran", margin, y + 5);
 
-  // QR Code Verifikasi aktif (URL halaman slip untuk scan kamera security)
   try {
     let baseUrl = "";
     if (typeof window !== "undefined" && window.location?.origin) {
@@ -88,7 +85,6 @@ export async function generateVisitSlipPdf(visit) {
 
   y += 28;
 
-  // Status Badge Box
   const isCheckedOut = Boolean(visit.checkoutAt);
   doc.setDrawColor(226, 232, 240);
   doc.setFillColor(isCheckedOut ? 240 : 254, isCheckedOut ? 253 : 249, isCheckedOut ? 244 : 231);
@@ -104,7 +100,6 @@ export async function generateVisitSlipPdf(visit) {
 
   y += 20;
 
-  // Helper untuk menggambar card/section
   const drawSection = (title, items) => {
     doc.setFillColor(248, 250, 252);
     doc.setDrawColor(226, 232, 240);
@@ -131,7 +126,6 @@ export async function generateVisitSlipPdf(visit) {
     y += boxHeight + 4;
   };
 
-  // Section 1: Data Tamu
   const vehicleText = visit.vehicleType
     ? `${visit.vehicleType}${visit.licensePlate ? ` (Plat: ${visit.licensePlate})` : ""}`
     : "—";
@@ -145,7 +139,6 @@ export async function generateVisitSlipPdf(visit) {
     ["Kategori Tamu", visit.visitorType === "OWNER" ? "VIP / Owner" : "Tamu Reguler"],
   ]);
 
-  // Section 2: Pihak yang Dikunjungi
   drawSection("II. PIHAK YANG DIKUNJUNGI (HOST)", [
     ["Karyawan yang Dituju", visit.hostName || visit.host?.name],
     ["Departemen", visit.hostDepartment || visit.host?.department || "—"],
@@ -153,7 +146,6 @@ export async function generateVisitSlipPdf(visit) {
     ["Keperluan Kunjungan", visit.purpose],
   ]);
 
-  // Section 3: Waktu & Durasi Kunjungan
   const durationText = calculateVisitDuration(visit.createdAt, visit.checkoutAt);
   drawSection("III. REKAPITULASI WAKTU KUNJUNGAN", [
     ["Waktu Masuk (Check-in)", formatDateTime(visit.createdAt)],
@@ -162,7 +154,6 @@ export async function generateVisitSlipPdf(visit) {
     ["Disahkan Oleh", visit.checkoutBy || (isCheckedOut ? "Tamu Mandiri (QR)" : "—")],
   ]);
 
-  // Footer & Disclaimer Resmi
   y += 4;
   doc.setDrawColor(226, 232, 240);
   doc.line(margin, y, pageWidth - margin, y);

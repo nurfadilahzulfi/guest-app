@@ -29,14 +29,10 @@ export async function POST(request) {
       return Response.json({ error: "Pengguna tidak ditemukan" }, { status: 404 });
     }
 
-    // Hash kata sandi dengan bcrypt (salt 12) sesuai standar keamanan
     const passwordHash = await bcrypt.hash(newPassword, 12);
 
     await prisma.$transaction(async (tx) => {
-      // Perbarui passwordHash
       await prismaUserRepository.update(userId, { passwordHash }, tx);
-
-      // Tandai token invite lama sebagai terpakai agar tidak bisa digunakan lagi
       await tx.inviteToken.updateMany({
         where: { userId, usedAt: null },
         data: { usedAt: new Date() },

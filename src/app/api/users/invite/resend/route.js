@@ -25,12 +25,9 @@ export async function POST(request) {
       return Response.json({ error: "Pengguna tidak ditemukan" }, { status: 404 });
     }
 
-    // Buat token aktivasi baru yang berlaku 72 jam
     const inviteToken = await cryptoTokenService.createInviteToken(user.id, 72);
     const appUrl = getRequestAppUrl(request);
     const inviteUrl = `${appUrl}/invite/${inviteToken.token}`;
-
-    // Kirim notifikasi email (opsional, jika SMTP aktif)
     try {
       await emailNotificationService.sendInviteEmail({
         user,
@@ -38,7 +35,6 @@ export async function POST(request) {
         inviteUrl,
       });
     } catch (e) {
-      // Email gagal tidak membatalkan kembalinya link
       console.warn("Kirim email aktivasi gagal, tautan tetap dihasilkan:", e.message);
     }
 

@@ -1,10 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 
-/**
- * Header navigasi atas menampilkan identitas brand PT. Tanimas Resources Internasional
- * dan tautan akses ke portal login staf/internal.
- */
 export function CheckInHeader() {
   return (
     <header className="bg-white border-b border-[var(--tm-line)] px-6 py-3.5 flex items-center justify-between shrink-0">

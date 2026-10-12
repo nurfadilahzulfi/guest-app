@@ -51,12 +51,9 @@ export async function PATCH(request) {
       return Response.json({ error: "userId wajib diisi" }, { status: 400 });
     }
 
-    // Mencegah Administrator menonaktifkan akun sendiri
     if (userId === session.user.id && isActive === false) {
       return Response.json({ error: "Tidak dapat menonaktifkan akun sendiri" }, { status: 400 });
     }
-
-    // Mencegah Administrator mendowngrade role akun sendiri
     if (userId === session.user.id && role && role !== "ADMINISTRATOR") {
       return Response.json({ error: "Tidak dapat mengubah peran akun Administrator milik sendiri" }, { status: 400 });
     }
@@ -113,7 +110,6 @@ export async function PATCH(request) {
       updateData.isDepartmentHead = Boolean(isDepartmentHead);
     }
 
-    // Validasi aturan bisnis: Role HOST wajib memiliki departemen & jabatan (AGENTS.md Bagian 6)
     const targetRole = updateData.role || existingUser.role;
     if (targetRole === "HOST") {
       const targetDept = updateData.department !== undefined ? updateData.department : existingUser.department;

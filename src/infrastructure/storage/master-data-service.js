@@ -10,11 +10,6 @@ const DEFAULT_POSITIONS = ["Head", "Head of IT", "Admin PPIC", "Staff", "Manager
 const TOKEN_KEY_DEPT = "MASTER_DATA_DEPARTMENTS";
 const TOKEN_KEY_POS = "MASTER_DATA_POSITIONS";
 
-/**
- * Service untuk mengelola Master Data Departemen dan Jabatan (Posisi).
- * Mendukung persistensi ganda: database PostgreSQL (production Vercel)
- * dan fallback lokal file JSON (development/offline).
- */
 export const masterDataService = {
   /**
    * Mengambil seluruh daftar departemen.
@@ -35,17 +30,13 @@ export const masterDataService = {
       console.warn("Gagal membaca master departemen dari DB, mencoba file:", dbErr.message);
     }
 
-    // Fallback baca file lokal
     let list = await this.readDepartmentsFromFile();
     if (!list || list.length === 0) {
       list = [...DEFAULT_DEPARTMENTS];
     }
-
-    // Coba simpan ke DB agar selanjutnya tersinkronisasi
     try {
       await this.saveDepartmentsToDb(list);
     } catch {
-      // Abaikan jika DB belum siap
     }
 
     return list.sort((a, b) => a.localeCompare(b));
@@ -70,17 +61,13 @@ export const masterDataService = {
       console.warn("Gagal membaca master jabatan dari DB, mencoba file:", dbErr.message);
     }
 
-    // Fallback baca file lokal
     let list = await this.readPositionsFromFile();
     if (!list || list.length === 0) {
       list = [...DEFAULT_POSITIONS];
     }
-
-    // Coba simpan ke DB agar selanjutnya tersinkronisasi
     try {
       await this.savePositionsToDb(list);
     } catch {
-      // Abaikan jika DB belum siap
     }
 
     return list.sort((a, b) => a.localeCompare(b));
@@ -97,7 +84,7 @@ export const masterDataService = {
 
     const current = await this.getDepartments();
     if (current.some((d) => d.toLowerCase() === trimmed.toLowerCase())) {
-      return current; // Sudah ada
+      return current;
     }
 
     const updated = [...current, trimmed].sort((a, b) => a.localeCompare(b));
@@ -132,11 +119,9 @@ export const masterDataService = {
     current[index] = trimmedNew;
     const updated = [...current].sort((a, b) => a.localeCompare(b));
 
-    // Update di DB master
     await this.saveDepartmentsToDb(updated);
     await this.saveToFileSafe({ departments: updated });
 
-    // Cascade update ke semua akun user yang memakai departemen ini
     try {
       await prisma.user.updateMany({
         where: { department: trimmedOld },
@@ -210,11 +195,9 @@ export const masterDataService = {
     current[index] = trimmedNew;
     const updated = [...current].sort((a, b) => a.localeCompare(b));
 
-    // Update di DB master
     await this.savePositionsToDb(updated);
     await this.saveToFileSafe({ positions: updated });
 
-    // Cascade update ke semua akun user yang memakai posisi ini
     try {
       await prisma.user.updateMany({
         where: { position: trimmedOld },
@@ -242,7 +225,6 @@ export const masterDataService = {
     return updated;
   },
 
-  // === Helper Simpan DB ===
   async saveDepartmentsToDb(departments) {
     try {
       await prisma.verificationToken.deleteMany({
@@ -277,7 +259,6 @@ export const masterDataService = {
     }
   },
 
-  // === Helper File Lokal (Aman di Vercel read-only) ===
   async readDepartmentsFromFile() {
     try {
       const content = await fs.readFile(FILE_PATH, "utf-8");
@@ -305,7 +286,6 @@ export const masterDataService = {
         const content = await fs.readFile(FILE_PATH, "utf-8");
         currentData = JSON.parse(content);
       } catch {
-        // Abaikan
       }
       const merged = { ...currentData, ...partial };
       await fs.mkdir(path.dirname(FILE_PATH), { recursive: true });
@@ -313,7 +293,6 @@ export const masterDataService = {
       await fs.writeFile(tempPath, JSON.stringify(merged, null, 2), "utf-8");
       await fs.rename(tempPath, FILE_PATH);
     } catch (err) {
-      // Pada Vercel, filesystem read-only, abaikan error file karena DB sudah menyimpan datanya
       console.warn("Info: file master data tidak dapat ditulis (normal di serverless Vercel):", err.message);
     }
   },

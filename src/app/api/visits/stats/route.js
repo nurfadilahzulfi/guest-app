@@ -3,10 +3,6 @@ import { canViewAllVisits } from "@/domain/entities/user";
 import { prisma } from "@/infrastructure/prisma/client";
 
 /**
- * GET /api/visits/stats
- * Mengembalikan data agregat kunjungan untuk chart dan statistik dashboard.
- * Dapat diakses oleh HOST (data kunjungannya sendiri) dan ADMIN_HRD / ADMINISTRATOR (data seluruh perusahaan).
- *
  * @returns {Promise<Response>}
  */
 export async function GET() {
@@ -24,17 +20,14 @@ export async function GET() {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Filter dasar: Host hanya melihat kunjungan miliknya, Admin melihat semua
     const baseWhere = isHost ? { hostId: session.user.id } : {};
 
     const now = new Date();
 
-    // Rentang 30 hari terakhir untuk trend harian
     const thirtyDaysAgo = new Date(now);
     thirtyDaysAgo.setDate(now.getDate() - 29);
     thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-    // Ambil semua kunjungan 30 hari terakhir
     const recentVisits = await prisma.visit.findMany({
       where: {
         ...baseWhere,
@@ -54,7 +47,6 @@ export async function GET() {
       orderBy: { createdAt: "asc" },
     });
 
-    // Bangun trend harian (30 hari terakhir) mencakup hari ini
     const dailyMap = {};
     for (let i = 29; i >= 0; i--) {
       const d = new Date(now);
@@ -82,7 +74,6 @@ export async function GET() {
 
     const dailyTrend = Object.values(dailyMap);
 
-    // Distribusi status keseluruhan (semua waktu sesuai filter)
     const [pendingCount, approvedCount, rejectedCount, totalCount, inBuildingCount, checkedOutCount] = await Promise.all([
       prisma.visit.count({ where: { ...baseWhere, status: "PENDING" } }),
       prisma.visit.count({ where: { ...baseWhere, status: "APPROVED" } }),
@@ -92,15 +83,11 @@ export async function GET() {
       prisma.visit.count({ where: { ...baseWhere, status: "APPROVED", checkoutAt: { not: null } } }),
     ]);
 
-    // Distribusi tipe tamu (semua waktu sesuai filter)
     const [regularCount, ownerCount] = await Promise.all([
       prisma.visit.count({ where: { ...baseWhere, visitorType: "REGULAR" } }),
       prisma.visit.count({ where: { ...baseWhere, visitorType: "OWNER" } }),
     ]);
 
-    // Top item (30 hari):
-    // - Jika Admin/HRD: Top 5 Host terbanyak dikunjungi
-    // - Jika Host: Top 5 Instansi / Tamu yang berkunjung ke dirinya
     let topItems = [];
     if (!isHost) {
       const hostCountMap = {};
@@ -136,7 +123,6 @@ export async function GET() {
         .slice(0, 5);
     }
 
-    // Total bulan ini vs bulan lalu
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const [totalThisMonth, totalLastMonth] = await Promise.all([

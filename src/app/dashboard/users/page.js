@@ -15,10 +15,6 @@ import { EditUserModal } from "@/components/dashboard/users/edit-user-modal";
 import { ResetPasswordModal } from "@/components/dashboard/users/reset-password-modal";
 import { UserInviteSuccessModal } from "@/components/dashboard/users/user-invite-success-modal";
 
-/**
- * Halaman Pengelolaan Pengguna Sistem (Administrator Only).
- * Orchestrator: mengelola state dan memanggil API, mendistribusikan data ke komponen presentasi.
- */
 export default function ManageUsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +29,6 @@ export default function ManageUsersPage() {
   const [inviteSuccessData, setInviteSuccessData] = useState(null);
   const [showUserPassword, setShowUserPassword] = useState(false);
 
-  // State reset password
   const [resetModalUser, setResetModalUser] = useState(null);
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -41,7 +36,6 @@ export default function ManageUsersPage() {
   const [resetError, setResetError] = useState("");
   const [resetSuccessCreds, setResetSuccessCreds] = useState(null);
 
-  // State edit user
   const [editModalUser, setEditModalUser] = useState(null);
   const [editFormData, setEditFormData] = useState({
     name: "", email: "", role: "HOST", department: "", position: "", isDepartmentHead: false, isActive: true,
@@ -97,8 +91,6 @@ export default function ManageUsersPage() {
         email: formData.email.trim(),
         role: formData.role,
         ...(formData.password?.trim() ? { password: formData.password.trim() } : {}),
-        // Departemen & jabatan dikirim untuk semua role — Administrator / Admin HRD
-        // yang punya jabatan akan muncul sebagai host di dropdown buku tamu
         ...(formData.department?.trim() ? { department: formData.department.trim() } : {}),
         ...(formData.position?.trim() ? { position: formData.position.trim() } : {}),
         isDepartmentHead: formData.isDepartmentHead || false,
@@ -171,7 +163,7 @@ export default function ManageUsersPage() {
       name: u.name || "", email: u.email || "", role: u.role || "HOST",
       department: u.department || "", position: u.position || "",
       isDepartmentHead: Boolean(u.isDepartmentHead),
-      isActive: u.isActive !== false, // default true jika tidak ada
+      isActive: u.isActive !== false,
     });
     setEditError("");
   };
@@ -284,7 +276,6 @@ export default function ManageUsersPage() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-lg font-bold text-zinc-900">Manajemen Pengguna</h1>
@@ -310,7 +301,6 @@ export default function ManageUsersPage() {
         </div>
       </div>
 
-      {/* Alert Sukses */}
       {successMsg && (
         <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
           <IconCheck className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -318,7 +308,6 @@ export default function ManageUsersPage() {
         </div>
       )}
 
-      {/* Filter & Daftar */}
       <div className="bg-white rounded-2xl border border-zinc-200 p-4 space-y-4">
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
@@ -357,7 +346,6 @@ export default function ManageUsersPage() {
         />
       </div>
 
-      {/* Modals */}
       <InviteUserModal
         isOpen={showInviteModal}
         formData={formData}

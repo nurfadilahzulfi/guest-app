@@ -143,10 +143,10 @@ function LoginForm() {
           className="text-2xl font-extrabold text-zinc-900 tracking-tight leading-tight"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Masuk Akun Staf
+          Selamat Datang
         </h1>
         <p className="text-xs sm:text-sm text-zinc-500 mt-1 max-w-xs leading-relaxed">
-          Silahkan masukkan email dan kata sandi Anda.
+          Silahkan masuk menggunakan email dan kata sandi Anda.
         </p>
       </div>
 

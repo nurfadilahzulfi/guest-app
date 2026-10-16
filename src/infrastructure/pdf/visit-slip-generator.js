@@ -38,7 +38,7 @@ export async function generateVisitSlipPdf(visit) {
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text("PT. TANIMAS RESOURCES INTERNASIONAL", margin, 12);
+  doc.text("PT. TANIMAS RESOURCES INTERNATIONAL", margin, 12);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
@@ -163,7 +163,7 @@ export async function generateVisitSlipPdf(visit) {
   doc.setFontSize(7.5);
   doc.setTextColor(113, 113, 122);
   doc.text(
-    "Dokumen ini diterbitkan secara otomatis dan sah oleh Guest App PT. Tanimas Resources Internasional.",
+    "Dokumen ini diterbitkan secara otomatis dan sah oleh Guest App PT. TANIMAS RESOURCES INTERNATIONAL.",
     margin,
     y
   );

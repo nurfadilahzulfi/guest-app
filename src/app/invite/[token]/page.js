@@ -128,7 +128,7 @@ export default function InviteActivationPage({ params }) {
             Aktivasi Akun Pengguna
           </h1>
           <p className="text-xs text-zinc-500 mt-1">
-            PT. Tanimas Resources Internasional
+            PT. TANIMAS RESOURCES INTERNATIONAL
           </p>
         </div>
 
@@ -363,7 +363,7 @@ export default function InviteActivationPage({ params }) {
       </div>
 
       <footer className="mt-6 text-center text-xs text-zinc-400 space-y-1 relative z-10">
-        <p>© {new Date().getFullYear()} PT. Tanimas Resources Internasional</p>
+        <p>© {new Date().getFullYear()} PT. TANIMAS RESOURCES INTERNATIONAL</p>
         <p className="text-[11px] text-zinc-500 font-medium">Aplikasi dibuat oleh Departemen IT Tanimas Group</p>
       </footer>
     </div>

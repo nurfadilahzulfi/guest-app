@@ -19,7 +19,7 @@ export function CheckInHeader() {
         <div>
           <p className="text-[11px] text-[var(--tm-muted)] font-medium leading-none">Buku Tamu Digital</p>
           <p className="text-sm sm:text-base font-bold text-[var(--tm-forest)] leading-tight mt-0.5" style={{ fontFamily: "var(--font-display)" }}>
-            PT. Tanimas Resources Internasional
+            PT. TANIMAS RESOURCES INTERNATIONAL
           </p>
         </div>
       </div>

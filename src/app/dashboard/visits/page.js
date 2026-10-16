@@ -2,8 +2,8 @@ import { auth } from "@/infrastructure/auth/auth-options";
 import { VisitsHistoryView } from "@/components/dashboard/visits/visits-history-view";
 
 export const metadata = {
-  title: "Riwayat Kunjungan — PT. Tanimas Resources Internasional",
-  description: "Buku tamu dan riwayat kunjungan lengkap PT. Tanimas Resources Internasional.",
+  title: "Riwayat Kunjungan — PT. TANIMAS RESOURCES INTERNATIONAL",
+  description: "Buku tamu dan riwayat kunjungan lengkap PT. TANIMAS RESOURCES INTERNATIONAL.",
 };
 
 /**

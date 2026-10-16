@@ -114,7 +114,7 @@ export function Sidebar({ user, isOpen, onClose }) {
                   className="text-xs sm:text-[13px] font-bold text-zinc-900 leading-snug break-words"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  PT. Tanimas Resources Internasional
+                  PT. TANIMAS RESOURCES INTERNATIONAL
                 </h2>
                 <p className="text-[11px] text-zinc-500 font-medium mt-0.5">
                   Portal Dashboard
@@ -217,7 +217,7 @@ export function Sidebar({ user, isOpen, onClose }) {
 
           <div className="pt-1 text-center space-y-0.5">
             <p className="text-[10px] text-zinc-400">
-              © {new Date().getFullYear()} PT. Tanimas Resources Internasional
+              © {new Date().getFullYear()} PT. TANIMAS RESOURCES INTERNATIONAL
             </p>
             <p className="text-[9px] text-zinc-500 font-medium">
               Aplikasi dibuat oleh Departemen IT Tanimas Group

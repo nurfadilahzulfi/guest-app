@@ -180,17 +180,17 @@ export default function VisitStatusPage({ params }) {
     },
     APPROVED: isCheckedOut
       ? {
-          title: "Kunjungan Selesai",
-          badge: "bg-blue-50 text-blue-700 border-blue-200",
-          iconBg: "bg-blue-100 text-blue-700 border-blue-300",
-          description: "Anda telah melakukan check-out resmi. Terima kasih atas kunjungan Anda di kantor kami.",
-        }
+        title: "Kunjungan Selesai",
+        badge: "bg-blue-50 text-blue-700 border-blue-200",
+        iconBg: "bg-blue-100 text-blue-700 border-blue-300",
+        description: "Anda telah melakukan check-out resmi. Terima kasih atas kunjungan Anda di kantor kami.",
+      }
       : {
-          title: "Kunjungan Disetujui (Aktif)",
-          badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
-          iconBg: "bg-emerald-100 text-emerald-700 border-emerald-300 animate-checkPop",
-          description: "Kunjungan Anda telah disetujui. Anda sedang berada di dalam area gedung PT. Tanimas Resources Internasional.",
-        },
+        title: "Kunjungan Disetujui (Aktif)",
+        badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        iconBg: "bg-emerald-100 text-emerald-700 border-emerald-300 animate-checkPop",
+        description: "Kunjungan Anda telah disetujui. Anda sedang berada di dalam area gedung PT. TANIMAS RESOURCES INTERNATIONAL.",
+      },
     REJECTED: {
       title: "Kunjungan Belum Dapat Diterima",
       badge: "bg-red-50 text-red-700 border-red-200",
@@ -225,7 +225,7 @@ export default function VisitStatusPage({ params }) {
             Status Kunjungan Tamu
           </h1>
           <p className="text-xs text-zinc-500 mt-1">
-            PT. Tanimas Resources Internasional
+            PT. TANIMAS RESOURCES INTERNATIONAL
           </p>
         </div>
 
@@ -332,7 +332,7 @@ export default function VisitStatusPage({ params }) {
                   </span>
                 </div>
                 <p className="text-[11px] text-emerald-700 leading-relaxed">
-                  Terima kasih atas kunjungan Anda di PT. Tanimas Resources Internasional. Slip bukti kunjungan resmi telah diterbitkan.
+                  Terima kasih atas kunjungan Anda di PT. TANIMAS RESOURCES INTERNATIONAL. Slip bukti kunjungan resmi telah diterbitkan.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                   <button
@@ -458,7 +458,7 @@ export default function VisitStatusPage({ params }) {
             <div className="text-center space-y-1">
               <h3 className="font-bold text-zinc-900 text-sm">Konfirmasi Check-Out</h3>
               <p className="text-xs text-zinc-500">
-                Apakah Anda telah menyelesaikan seluruh keperluan dan hendak meninggalkan area kantor PT. Tanimas Resources Internasional?
+                Apakah Anda telah menyelesaikan seluruh keperluan dan hendak meninggalkan area kantor PT. TANIMAS RESOURCES INTERNATIONAL?
               </p>
             </div>
             <div className="space-y-2 pt-2">
@@ -491,7 +491,7 @@ export default function VisitStatusPage({ params }) {
       )}
 
       <footer className="mt-6 text-center text-xs text-zinc-400 space-y-1 relative z-10">
-        <p>© {new Date().getFullYear()} PT. Tanimas Resources Internasional</p>
+        <p>© {new Date().getFullYear()} PT. TANIMAS RESOURCES INTERNATIONAL</p>
         <p className="text-[11px] text-zinc-500 font-medium">Aplikasi dibuat oleh Departemen IT Tanimas Group</p>
       </footer>
     </div>

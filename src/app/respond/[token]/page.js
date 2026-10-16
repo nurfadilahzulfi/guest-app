@@ -155,11 +155,10 @@ export default function RespondVisitPage({ params }) {
         {!loading && completedResult && (
           <div className="space-y-5 text-center py-4 animate-fadeIn">
             <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto ${
-                completedResult.action === "APPROVED"
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto ${completedResult.action === "APPROVED"
                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                   : "bg-zinc-100 text-zinc-700 border border-zinc-200"
-              }`}
+                }`}
             >
               {completedResult.action === "APPROVED" ? (
                 <IconCheck className="w-7 h-7 text-emerald-600" />
@@ -310,7 +309,7 @@ export default function RespondVisitPage({ params }) {
       </div>
 
       <footer className="mt-6 text-center text-xs text-zinc-400 space-y-1 relative z-10">
-        <p>© {new Date().getFullYear()} PT. Tanimas Resources Internasional</p>
+        <p>© {new Date().getFullYear()} PT. TANIMAS RESOURCES INTERNATIONAL</p>
         <p className="text-[11px] text-zinc-500 font-medium">Aplikasi dibuat oleh Departemen IT Tanimas Group</p>
       </footer>
     </div>

@@ -3,8 +3,8 @@ import { auth } from "@/infrastructure/auth/auth-options";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
 export const metadata = {
-  title: "Dashboard — PT. Tanimas Resources Internasional",
-  description: "Portal internal pengelolaan buku tamu digital PT. Tanimas Resources Internasional.",
+  title: "Dashboard — PT. TANIMAS RESOURCES INTERNATIONAL",
+  description: "Portal internal pengelolaan buku tamu digital PT. TANIMAS RESOURCES INTERNATIONAL.",
 };
 
 export default async function DashboardLayout({ children }) {

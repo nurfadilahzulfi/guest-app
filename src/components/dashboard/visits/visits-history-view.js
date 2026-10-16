@@ -129,11 +129,11 @@ export function VisitsHistoryView({ user }) {
       setSelectedVisit((prev) =>
         prev
           ? {
-              ...prev,
-              status: action,
-              hostReply: hostReply || prev.hostReply,
-              respondedAt: data.respondedAt || new Date().toISOString(),
-            }
+            ...prev,
+            status: action,
+            hostReply: hostReply || prev.hostReply,
+            respondedAt: data.respondedAt || new Date().toISOString(),
+          }
           : null
       );
     }
@@ -377,7 +377,7 @@ export function VisitsHistoryView({ user }) {
           <p className="text-xs text-zinc-500 mt-1">
             {isHost
               ? "Daftar seluruh riwayat kunjungan dan janji temu yang ditujukan kepada Anda."
-              : "Daftar seluruh riwayat kunjungan buku tamu PT. Tanimas Resources Internasional."}
+              : "Daftar seluruh riwayat kunjungan buku tamu PT. TANIMAS RESOURCES INTERNATIONAL."}
           </p>
         </div>
 

@@ -60,7 +60,7 @@ export function AntiInspectGuard() {
     // 3. Peringatan Keamanan di Browser Console
     try {
       console.log(
-        "%c⚠️ PERINGATAN KEAMANAN — PT. TANIMAS RESOURCES INTERNASIONAL",
+        "%c⚠️ PERINGATAN KEAMANAN — PT. TANIMAS RESOURCES INTERNATIONAL",
         "color: #dc2626; font-size: 22px; font-weight: 800; padding: 6px 0;"
       );
       console.log(

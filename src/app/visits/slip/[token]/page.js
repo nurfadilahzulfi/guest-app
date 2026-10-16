@@ -144,7 +144,7 @@ export default function VisitSlipPage({ params }) {
             </div>
             <div>
               <h1 className="text-base sm:text-lg font-black tracking-tight text-zinc-900 uppercase">
-                PT. Tanimas Resources Internasional
+                PT. TANIMAS RESOURCES INTERNATIONAL
               </h1>
               <p className="text-[10px] sm:text-xs text-zinc-500 font-medium">
                 Sistem Buku Tamu Digital · Exit Pass & Visitor Clearance
@@ -176,11 +176,10 @@ export default function VisitSlipPage({ params }) {
           </div>
 
           <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border shrink-0 ${
-              isCheckedOut
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border shrink-0 ${isCheckedOut
                 ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                 : "bg-amber-50 text-amber-800 border-amber-300"
-            }`}
+              }`}
           >
             {isCheckedOut ? "✓ SUDAH CHECK-OUT" : "● SEDANG BERKUNJUNG"}
           </span>
@@ -272,7 +271,7 @@ export default function VisitSlipPage({ params }) {
         <div className="border-t border-zinc-200 pt-5 text-[11px] text-zinc-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <p className="max-w-md">
-              Dokumen ini diterbitkan secara otomatis dan sah oleh Guest App PT. Tanimas Resources Internasional sebagai izin kepulangan tamu.
+              Dokumen ini diterbitkan secara otomatis dan sah oleh Guest App PT. TANIMAS RESOURCES INTERNATIONAL sebagai izin kepulangan tamu.
             </p>
             <p className="font-semibold text-zinc-700 mt-1">
               Aplikasi dibuat & dikelola oleh Departemen IT Tanimas Group.

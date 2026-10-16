@@ -120,11 +120,11 @@ export function DashboardHomeView({ user }) {
       setSelectedVisit((prev) =>
         prev
           ? {
-              ...prev,
-              status: action,
-              hostReply: hostReply || prev.hostReply,
-              respondedAt: data.respondedAt || new Date().toISOString(),
-            }
+            ...prev,
+            status: action,
+            hostReply: hostReply || prev.hostReply,
+            respondedAt: data.respondedAt || new Date().toISOString(),
+          }
           : null
       );
     }
@@ -231,7 +231,7 @@ export function DashboardHomeView({ user }) {
               Ringkasan Kunjungan Perusahaan
             </h1>
             <p className="text-xs sm:text-sm text-zinc-500 leading-relaxed">
-              Pantau tren dan aktivitas tamu di seluruh departemen PT. Tanimas Resources Internasional secara terpusat, akurat, dan *real-time*.
+              Pantau tren dan aktivitas tamu di seluruh departemen PT. TANIMAS RESOURCES INTERNATIONAL secara terpusat, akurat, dan *real-time*.
             </p>
           </div>
 
@@ -383,9 +383,8 @@ export function DashboardHomeView({ user }) {
                   </div>
 
                   <span
-                    className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                      statusBadge[visit.status] || "bg-zinc-100 text-zinc-700"
-                    }`}
+                    className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-md border ${statusBadge[visit.status] || "bg-zinc-100 text-zinc-700"
+                      }`}
                   >
                     {statusLabel[visit.status] || visit.status}
                   </span>
@@ -483,7 +482,7 @@ export function DashboardHomeView({ user }) {
         isAdmin={isAdmin}
         currentUserId={user?.id}
         onRespond={handleDirectRespond}
-        onDelete={() => {}}
+        onDelete={() => { }}
         onCheckout={handleManualCheckout}
       />
 

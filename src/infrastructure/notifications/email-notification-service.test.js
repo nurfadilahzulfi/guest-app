@@ -200,7 +200,7 @@ describe("Infrastructure: emailNotificationService — Matriks Routing Notifikas
     expect(htmlSizeBytes).toBeLessThan(15000); // 15 KB max, Gmail clips at 102.4 KB
 
     // 4. Logo harus disertakan
-    expect(callArgs.html).toContain("PT. Tanimas Resources Internasional");
+    expect(callArgs.html).toContain("PT. TANIMAS RESOURCES INTERNATIONAL");
     const logoAttachment = callArgs.attachments.find((att) => att.cid === "tanimas-logo");
     expect(logoAttachment).toBeDefined();
   });

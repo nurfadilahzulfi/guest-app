@@ -153,13 +153,13 @@ export const emailNotificationService = {
           <div style="margin: 0 auto 12px auto; display: inline-block; background-color: #ffffff; padding: 8px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-align: center;">
             <img
               src="${logoData.src}"
-              alt="PT. Tanimas Resources Internasional"
+              alt="PT. TANIMAS RESOURCES INTERNATIONAL"
               width="48"
               height="48"
               style="width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto; border: 0;"
             />
           </div>
-          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. Tanimas Resources Internasional</h1>
+          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. TANIMAS RESOURCES INTERNATIONAL</h1>
           <p style="color: #cbd5e1 !important; margin: 6px 0 0 0; font-size: 13px; text-align: center;">
             Pemberitahuan Kunjungan Tamu — <span style="color: #38bdf8 !important; font-weight: 700;">${notifType}</span>
           </p>
@@ -245,7 +245,7 @@ export const emailNotificationService = {
 
           <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 28px 0 20px 0;" />
           <p style="color: #a1a1aa; font-size: 12px; margin: 0; text-align: center;">
-            Email ini dikirim secara otomatis oleh Guest App PT. Tanimas Resources Internasional.<br/>Jangan membalas email ini secara langsung.
+            Email ini dikirim secara otomatis oleh Guest App PT. TANIMAS RESOURCES INTERNATIONAL.<br/>Jangan membalas email ini secara langsung.
           </p>
         </div>
       </div>
@@ -285,19 +285,19 @@ export const emailNotificationService = {
           <div style="margin: 0 auto 12px auto; display: inline-block; background-color: #ffffff; padding: 8px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-align: center;">
             <img
               src="${logoData.src}"
-              alt="PT. Tanimas Resources Internasional"
+              alt="PT. TANIMAS RESOURCES INTERNATIONAL"
               width="48"
               height="48"
               style="width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto; border: 0;"
             />
           </div>
-          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. Tanimas Resources Internasional</h1>
+          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. TANIMAS RESOURCES INTERNATIONAL</h1>
           <p style="color: #cbd5e1 !important; margin: 6px 0 0 0; font-size: 13px; text-align: center;">Sistem Manajemen Tamu (Guest App)</p>
         </div>
         <div style="background-color: #ffffff; padding: 36px 32px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 16px 16px;">
           <h2 style="color: #18181b; margin-top: 0; font-size: 18px;">Halo, ${user.name}!</h2>
           <p style="color: #52525b; font-size: 14px; line-height: 1.6;">
-            Akun Anda untuk portal <strong>Guest App PT. Tanimas Resources Internasional</strong> telah berhasil dibuat oleh Administrator.
+            Akun Anda untuk portal <strong>Guest App PT. TANIMAS RESOURCES INTERNATIONAL</strong> telah berhasil dibuat oleh Administrator.
             Berikut adalah detail akun dan kredensial login Anda:
           </p>
 
@@ -349,7 +349,7 @@ export const emailNotificationService = {
 
           <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 28px 0 20px 0;" />
           <p style="color: #a1a1aa; font-size: 12px; margin: 0; text-align: center;">
-            Email ini dikirim secara otomatis oleh Guest App PT. Tanimas Resources Internasional.<br/>Tautan Login: <a href="${finalLoginUrl}" style="color: #71717a;">${finalLoginUrl}</a>
+            Email ini dikirim secara otomatis oleh Guest App PT. TANIMAS RESOURCES INTERNATIONAL.<br/>Tautan Login: <a href="${finalLoginUrl}" style="color: #71717a;">${finalLoginUrl}</a>
           </p>
         </div>
       </div>
@@ -380,19 +380,19 @@ export const emailNotificationService = {
           <div style="margin: 0 auto 12px auto; display: inline-block; background-color: #ffffff; padding: 8px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-align: center;">
             <img
               src="${logoData.src}"
-              alt="PT. Tanimas Resources Internasional"
+              alt="PT. TANIMAS RESOURCES INTERNATIONAL"
               width="48"
               height="48"
               style="width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto; border: 0;"
             />
           </div>
-          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. Tanimas Resources Internasional</h1>
+          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. TANIMAS RESOURCES INTERNATIONAL</h1>
           <p style="color: #cbd5e1 !important; margin: 6px 0 0 0; font-size: 13px; text-align: center;">Undangan Akun Baru</p>
         </div>
         <div style="background-color: #ffffff; padding: 36px 32px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 16px 16px;">
           <h2 style="color: #1f2937; margin-top: 0; font-size: 18px;">Halo, ${user.name}!</h2>
           <p style="color: #4b5563; font-size: 14px; line-height: 1.6;">
-            Anda telah diundang untuk bergabung dengan portal Guest App PT. Tanimas Resources Internasional sebagai <strong>${user.role}</strong>.
+            Anda telah diundang untuk bergabung dengan portal Guest App PT. TANIMAS RESOURCES INTERNATIONAL sebagai <strong>${user.role}</strong>.
             Klik tombol di bawah untuk mengaktifkan akun Anda dan membuat password baru:
           </p>
           <div style="margin: 28px 0; text-align: center;">
@@ -405,7 +405,7 @@ export const emailNotificationService = {
           </p>
           <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 28px 0 20px 0;" />
           <p style="color: #a1a1aa; font-size: 12px; margin: 0; text-align: center;">
-            Email ini dikirim secara otomatis oleh Guest App PT. Tanimas Resources Internasional.<br/>Tautan: <a href="${inviteUrl}" style="color: #71717a;">${inviteUrl}</a>
+            Email ini dikirim secara otomatis oleh Guest App PT. TANIMAS RESOURCES INTERNATIONAL.<br/>Tautan: <a href="${inviteUrl}" style="color: #71717a;">${inviteUrl}</a>
           </p>
         </div>
       </div>
@@ -436,13 +436,13 @@ export const emailNotificationService = {
           <div style="margin: 0 auto 12px auto; display: inline-block; background-color: #ffffff; padding: 8px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-align: center;">
             <img
               src="${logoData.src}"
-              alt="PT. Tanimas Resources Internasional"
+              alt="PT. TANIMAS RESOURCES INTERNATIONAL"
               width="48"
               height="48"
               style="width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto; border: 0;"
             />
           </div>
-          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. Tanimas Resources Internasional</h1>
+          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. TANIMAS RESOURCES INTERNATIONAL</h1>
           <p style="color: #cbd5e1 !important; margin: 6px 0 0 0; font-size: 13px; text-align: center;">Pengaturan Ulang Kata Sandi</p>
         </div>
         <div style="background-color: #ffffff; padding: 36px 32px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 16px 16px;">
@@ -464,7 +464,7 @@ export const emailNotificationService = {
           </p>
           <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 28px 0 20px 0;" />
           <p style="color: #a1a1aa; font-size: 12px; margin: 0; text-align: center;">
-            Email ini dikirim secara otomatis oleh Guest App PT. Tanimas Resources Internasional.<br/>Jika tombol di atas tidak berfungsi, buka tautan berikut:<br/>
+            Email ini dikirim secara otomatis oleh Guest App PT. TANIMAS RESOURCES INTERNATIONAL.<br/>Jika tombol di atas tidak berfungsi, buka tautan berikut:<br/>
             <a href="${resetUrl}" style="color: #71717a; word-break: break-all;">${resetUrl}</a>
           </p>
         </div>
@@ -514,13 +514,13 @@ export const emailNotificationService = {
           <div style="margin: 0 auto 12px auto; display: inline-block; background-color: #ffffff; padding: 8px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); text-align: center;">
             <img
               src="${logoData.src}"
-              alt="PT. Tanimas Resources Internasional"
+              alt="PT. TANIMAS RESOURCES INTERNATIONAL"
               width="48"
               height="48"
               style="width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto; border: 0;"
             />
           </div>
-          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. Tanimas Resources Internasional</h1>
+          <h1 style="color: #ffffff !important; margin: 0; font-size: 20px; letter-spacing: -0.3px; font-weight: 700; text-align: center;">PT. TANIMAS RESOURCES INTERNATIONAL</h1>
           <p style="color: #cbd5e1 !important; margin: 6px 0 0 0; font-size: 13px; text-align: center;">Pemberitahuan Status Kunjungan Tamu</p>
         </div>
         <div style="background-color: #ffffff; padding: 36px 32px; border: 1px solid #e4e4e7; border-top: none; border-radius: 0 0 16px 16px;">
@@ -588,7 +588,7 @@ export const emailNotificationService = {
 
           <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 28px 0 20px 0;" />
           <p style="color: #a1a1aa; font-size: 12px; margin: 0; text-align: center;">
-            Email ini dikirim secara otomatis oleh Sistem Manajemen Tamu PT. Tanimas Resources Internasional.<br/>
+            Email ini dikirim secara otomatis oleh Sistem Manajemen Tamu PT. TANIMAS RESOURCES INTERNATIONAL.<br/>
             Tautan Status: <a href="${finalStatusUrl}" style="color: #71717a;">${finalStatusUrl}</a>
           </p>
         </div>
